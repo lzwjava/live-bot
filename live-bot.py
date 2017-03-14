@@ -7,14 +7,13 @@ from wxbot import *
 
 class MyWXBot(WXBot):
     def all_group_names(self):
-        # group_names = [u'趣直播超级用户群10', u'趣直播超级用户群9', u'趣直播超级用户群8', u'趣直播超级用户群7',
-        #                u'趣直播超级用户群6', u'趣直播超级用户群5', u'趣直播超级用户群4', u'趣直播超级用户群3',
-        #                u'趣直播超级用户群2', u'趣直播精华用户群', u'测试']
-        group_names = [u'测试']
+        group_names = [u'趣直播超级用户群10', u'趣直播超级用户群9', u'趣直播超级用户群8', u'趣直播超级用户群7',
+                       u'趣直播超级用户群6', u'趣直播超级用户群5', u'趣直播超级用户群4', u'趣直播超级用户群3',
+                       u'趣直播超级用户群2', u'趣直播精华用户群', u'测试']
+        # group_names = [u'测试']
         return group_names
 
     def in_live_groups(self, target_group_name):
-        # group_names = [u'测试']
         for group_name in self.all_group_names():
             if group_name == target_group_name:
                 return True
@@ -51,7 +50,8 @@ class MyWXBot(WXBot):
                         return name['display_name']
         return None
 
-    def proc_msg(self):
+    def bacth_remark_names(self):
+        succeed_count = 0
         for contact in self.contact_list:
             uid = contact['UserName']
             nickname = contact['NickName']
@@ -59,21 +59,31 @@ class MyWXBot(WXBot):
             if not remark_name:
                 prefer_name = self.get_prefer_username(uid)
                 if prefer_name is not None:
-                    if len(prefer_name) > len(nickname):
+                    if 'span' not in prefer_name and nickname != prefer_name:
                         remark_res = self.set_remarkname(uid, prefer_name)
-                        if remark_res:
+                        if remark_res == 0:
                             print  '%s changed to %s' % (nickname, prefer_name)
-                            time.sleep(1)
+                            time.sleep(10)
+                            succeed_count = succeed_count + 1
+                        elif remark_res == -1:
+                            print 'exception'
+                        elif remark_res == 1205:
+                            print 'too frequent'
+                            return
                         else:
-                            print 'fail to change %s to %s ' % (nickname, prefer_name)
+                            print 'fail to change %s to %s code %d' % (nickname, prefer_name, remark_res)
                     else:
-                        print 'prefer name %s length < nickname %s length' % (prefer_name, nickname)
+                        print 'fail change prefer name %s , nickname %s ' % (prefer_name, nickname)
                 else:
                     pass
                     # print  'can not find prefer name %s'
             else:
                 pass
                 # print 'do not need change %s to %s' % (nickname, remark_name)
+        print 'succeed count %d total %d' % (succeed_count, len(self.contact_list))
+
+    def proc_msg1(self):
+        self.bacth_remark_names()
 
     def handle_msg_all(self, msg):
         # print json.dumps(msg)
@@ -110,12 +120,11 @@ class MyWXBot(WXBot):
         elif msg['msg_type_id'] == 12:
             self.batch_get_group_members()
 
-
-'''
     def schedule(self):
-        self.send_msg(u'张三', u'测试')
-        time.sleep(1)
-'''
+        if len(self.contact_list) > 4000:
+            self.bacth_remark_names()
+        else:
+            print 'contact list len %d' % len(self.contact_list)
 
 
 def main():
