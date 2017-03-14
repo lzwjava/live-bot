@@ -50,7 +50,7 @@ class MyWXBot(WXBot):
                         return name['display_name']
         return None
 
-    def bacth_remark_names(self):
+    def batch_remark_names(self):
         succeed_count = 0
         for contact in self.contact_list:
             uid = contact['UserName']
@@ -83,7 +83,7 @@ class MyWXBot(WXBot):
         print 'succeed count %d total %d' % (succeed_count, len(self.contact_list))
 
     def proc_msg1(self):
-        self.bacth_remark_names()
+        self.batch_remark_names()
 
     def handle_msg_all(self, msg):
         # print json.dumps(msg)
@@ -105,7 +105,7 @@ class MyWXBot(WXBot):
                     add_result = self.add_friend_to_group(username, group_username)
                     if add_result:
                         time.sleep(5)
-                        self.send_msg_by_uid(u'嗨 很高兴认识朋友，这是我们知识直播平台的主播用户群 诚邀朋友加入~~进群改备注：公司-职位-姓名 '
+                        self.send_msg_by_uid(u'嗨 很高兴认识朋友，感谢朋友参加直播，这是我们知识直播平台的主播用户群 诚邀朋友加入~~进群改备注：公司-职位-姓名 '
                                              u'~~我是趣直播创始人，有问题随时联系哈~~~',
                                              username)
                     else:
@@ -120,11 +120,12 @@ class MyWXBot(WXBot):
         elif msg['msg_type_id'] == 12:
             self.batch_get_group_members()
 
-    def schedule(self):
-        if len(self.contact_list) > 4000:
-            self.bacth_remark_names()
-        else:
-            print 'contact list len %d' % len(self.contact_list)
+
+            # def schedule(self):
+            #     if len(self.contact_list) > 4000:
+            #         self.bacth_remark_names()
+            #     else:
+            #         print 'contact list len %d' % len(self.contact_list)
 
 
 def main():

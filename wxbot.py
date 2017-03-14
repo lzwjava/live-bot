@@ -229,8 +229,8 @@ class WXBot:
     def get_big_contact(self):
         total_len = len(self.full_user_name_list)
         user_info_list = []
-        print 'total len %d' % (total_len)
-        print json.dumps(self.full_user_name_list)
+        # print 'total len %d' % (total_len)
+        # print json.dumps(self.full_user_name_list)
 
         # 一次拉取50个联系人的信息，包括所有的群聊，公众号，好友
         while self.cursor < total_len:
