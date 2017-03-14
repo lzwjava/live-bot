@@ -864,23 +864,14 @@ class WXBot:
         return dic['BaseResponse']['Ret'] == 0
 
     def is_friend_in_group(self, uid, group_name):
-        """
-        是否在群里
-        """
         gid = ''
-        # 通过群名获取群id,群没保存到通讯录中的话无法添加哦
         for group in self.group_list:
             if group['NickName'] == group_name:
                 gid = group['UserName']
         if gid == '':
             return False
-        # 获取群成员数量并判断邀请方式
-        group_num = len(self.group_members[gid])
-        print '[DEBUG] group_name:%s group_num:%s' % (group_name, group_num)
-        # 通过群id判断uid是否在群中
         for user in self.group_members[gid]:
             if user['UserName'] == uid:
-                # 已经在群里面了,不用加了
                 return True
         return False
 
@@ -1508,10 +1499,12 @@ class WXBot:
             'RemarkName': remarkname,
             'UserName': uid
         }
+        headers = {'content-type': 'application/json; charset=UTF-8'}
+        data = json.dumps(params, ensure_ascii=False).encode('utf8')
         try:
-            r = self.session.post(url, data=json.dumps(params), timeout=60)
-            r.encoding = 'utf-8'
-            dic = json.loads(r.text)
-            return dic['BaseResponse']['ErrMsg']
+            r = self.session.post(url, data=data, headers=headers, timeout=60)
         except:
-            return None
+            return False
+        dic = r.json()
+        print json.dumps(dic)
+        return dic['BaseResponse']['Ret'] == 0
