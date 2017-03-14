@@ -49,7 +49,7 @@ class MyWXBot(WXBot):
                     self.batch_get_group_members()
                     update_name = self.get_group_member_prefer_name(self.get_group_member_name(group_id, send_id))
                     if update_name is not None and "-" not in update_name:
-                        self.send_msg_by_uid('楼上请改备注(公司-职位-姓名)哈', group_id)
+                        self.send_msg_by_uid('楼上请按格式改备注(公司-职位-姓名)哈', group_id)
 
 
 '''
