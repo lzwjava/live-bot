@@ -17,11 +17,14 @@ import random
 from traceback import format_exc
 from requests.exceptions import ConnectionError, ReadTimeout
 import HTMLParser
+import urllib3.contrib.pyopenssl
 
 UNKONWN = 'unkonwn'
 SUCCESS = '200'
 SCANED = '201'
 TIMEOUT = '408'
+
+urllib3.contrib.pyopenssl.inject_into_urllib3()
 
 
 def map_username_batch(user_name):
