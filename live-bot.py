@@ -95,7 +95,7 @@ class MyWXBot(WXBot):
             if not self.is_friend_in_any_group(username):
                 self.apply_useradd_requests(RecommendInfo)
                 print '[BOT] auto add user %s ' % (nickname)
-                group_username = u'趣直播超级用户群10'
+                group_username = self.group_by_nickname(nickname)
                 if (self.is_friend_in_group(username, group_username)):
                     print '[BOT] already in group skip %s' % (nickname)
                     time.sleep(5)
@@ -126,6 +126,31 @@ class MyWXBot(WXBot):
             #         self.bacth_remark_names()
             #     else:
             #         print 'contact list len %d' % len(self.contact_list)
+
+    def group_by_nickname(self, nickname):
+        default_group_name = u'趣直播超级用户群10'
+        topic = self.userTopic(nickname)
+        if topic is None:
+            return default_group_name
+        else:
+            if topic['topicId'] == 4:
+                return default_group_name
+            else:
+                return default_group_name
+
+    def userTopic(self, username):
+        url = 'https://api.quzhiboapp.com/users/userTopic'
+        params = {
+            'username': username
+        }
+        r = self.session.get(url, params=params)
+        r.encoding = 'utf-8'
+        dic = json.loads(r.text)
+        if dic['status'] == 'success':
+            return dic['result']
+        else:
+            print 'not find topic status: %s' % (dic['status'])
+            return None
 
 
 def main():
