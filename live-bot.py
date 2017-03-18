@@ -133,8 +133,8 @@ class MyWXBot(WXBot):
         if topic is None:
             return default_group_name
         else:
-            if topic['topicId'] == 4:
-                return default_group_name
+            if topic['topicId'] == 1:
+                return '趣直播后端用户群'
             else:
                 return default_group_name
 
