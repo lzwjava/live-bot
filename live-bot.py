@@ -89,7 +89,7 @@ class MyWXBot(WXBot):
         # print json.dumps(msg)
         if msg['msg_type_id'] == 37:
             RecommendInfo = msg['content']['data']
-            time.sleep(5)
+            time.sleep(1)
             username = RecommendInfo['UserName']
             nickname = RecommendInfo['NickName']
             if not self.is_friend_in_any_group(username):
@@ -98,18 +98,18 @@ class MyWXBot(WXBot):
                 group_username = self.group_by_nickname(nickname)
                 if (self.is_friend_in_group(username, group_username)):
                     print '[BOT] already in group skip %s' % (nickname)
-                    time.sleep(5)
+                    time.sleep(1)
                     self.send_msg_by_uid(u'嗨 很高兴认识朋友~~我是趣直播创始人~~感谢朋友对趣直播的支持哈', username)
                 else:
-                    time.sleep(5)
+                    time.sleep(1)
                     add_result = self.add_friend_to_group(username, group_username)
                     if add_result:
-                        time.sleep(5)
+                        time.sleep(1)
                         self.send_msg_by_uid(u'嗨 很高兴认识朋友，感谢朋友参加直播，这是我们知识直播平台的主播用户群 诚邀朋友加入~~进群改备注：公司-职位-姓名 '
                                              u'~~我是趣直播创始人，有问题随时联系哈~~~',
                                              username)
                     else:
-                        time.sleep(5)
+                        time.sleep(1)
                         print '[ERROR] fail to add friend to group'
                         self.send_msg_by_uid(u'嗨 很高兴认识朋友~~我是趣直播创始人~~感谢朋友对趣直播的支持哈', username)
             else:
