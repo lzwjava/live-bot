@@ -110,8 +110,8 @@ class MyWXBot(WXBot):
                     if add_result:
                         time.sleep(5)
                         print 'auto add ok'
-                        self.send_msg_by_uid(u'嗨 很高兴认识朋友，感谢朋友参加直播，这是我们知识直播平台的主播用户群 诚邀朋友加入~~进群改备注：公司-职位-姓名 '
-                                             u'~~我是趣直播创始人，有问题随时联系哈~~~',
+                        self.send_msg_by_uid(u'嗨 很高兴认识朋友，感谢朋友参加直播，这是我们知识直播平台的主播用户群,有BAT大咖等 诚邀朋友加入~~进群改备注：公司-职位-姓名 '
+                                             u'~~我是趣直播创始人，有问题随时联系哈~~~ 一点介绍: http://mp.weixin.qq.com/s/KVr_s8bWOBfeexCmhHBpIw',
                                              username)
                     else:
                         time.sleep(5)
@@ -139,7 +139,8 @@ class MyWXBot(WXBot):
             return default_group_name
         else:
             if topic['topicId'] == 1:
-                return u'趣直播后端用户群'
+                # return u'趣直播后端用户群'
+                return default_group_name
             else:
                 return default_group_name
 
