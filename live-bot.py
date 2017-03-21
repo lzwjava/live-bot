@@ -9,7 +9,7 @@ class MyWXBot(WXBot):
     def all_group_names(self):
         group_names = [u'趣直播超级用户群10', u'趣直播超级用户群9', u'趣直播超级用户群8', u'趣直播超级用户群7',
                        u'趣直播超级用户群6', u'趣直播超级用户群5', u'趣直播超级用户群4', u'趣直播超级用户群3',
-                       u'趣直播超级用户群2', u'趣直播精华用户群', u'测试']
+                       u'趣直播超级用户群2', u'趣直播超级用户群1', u'测试']
         # group_names = [u'测试']
         return group_names
 
@@ -111,7 +111,8 @@ class MyWXBot(WXBot):
                         time.sleep(5)
                         print 'auto add ok'
                         self.send_msg_by_uid(u'嗨 很高兴认识朋友，感谢朋友参加直播，这是我们知识直播平台的主播用户群,有BAT大咖等 诚邀朋友加入~~进群改备注：公司-职位-姓名 '
-                                             u'~~我是趣直播创始人，有问题随时联系哈~~~ 一点介绍: http://mp.weixin.qq.com/s/KVr_s8bWOBfeexCmhHBpIw',
+                                             u'~~我是趣直播创始人，一点介绍 '
+                                             u'http://mp.weixin.qq.com/s/KVr_s8bWOBfeexCmhHBpIw 有使用问题随时联系哈~~',
                                              username)
                     else:
                         time.sleep(5)
