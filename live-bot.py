@@ -133,13 +133,12 @@ class MyWXBot(WXBot):
             #         print 'contact list len %d' % len(self.contact_list)
 
     def group_by_nickname(self, nickname):
-        default_group_name = u'趣直播超级用户群10'
+        default_group_name = u'趣直播超级用户群11'
         topic = self.userTopic(nickname)
         if topic is None:
             return default_group_name
         else:
             if topic['topicId'] == 1:
-                # return u'趣直播后端用户群'
                 return default_group_name
             else:
                 return default_group_name
