@@ -7,7 +7,7 @@ from wxbot import *
 
 class MyWXBot(WXBot):
     def all_group_names(self):
-        group_names = [u'趣直播超级用户群10', u'趣直播超级用户群9', u'趣直播超级用户群8', u'趣直播超级用户群7',
+        group_names = [u'趣直播超级用户群11', u'趣直播超级用户群10', u'趣直播超级用户群9', u'趣直播超级用户群8', u'趣直播超级用户群7',
                        u'趣直播超级用户群6', u'趣直播超级用户群5', u'趣直播超级用户群4', u'趣直播超级用户群3',
                        u'趣直播超级用户群2', u'趣直播超级用户群1', u'测试']
         # group_names = [u'测试']
@@ -48,6 +48,8 @@ class MyWXBot(WXBot):
                 else:
                     if 'display_name' in name:
                         return name['display_name']
+                    else:
+                        pass
         return None
 
     def batch_remark_names(self):
@@ -78,8 +80,13 @@ class MyWXBot(WXBot):
                     pass
                     # print  'can not find prefer name %s'
             else:
-                pass
-                # print 'do not need change %s to %s' % (nickname, remark_name)
+                prefer_name = self.get_prefer_username(uid)
+                if prefer_name is not None:
+                    if remark_name != prefer_name:
+                        pass
+                        # print 'remark name %s prefer name %s' % (remark_name, prefer_name)
+                        # print 'do not need change %s to %s' % (nickname, remark_name)
+
         print 'succeed count %d total %d' % (succeed_count, len(self.contact_list))
 
     def proc_msg1(self):
@@ -110,9 +117,8 @@ class MyWXBot(WXBot):
                     if add_result:
                         time.sleep(5)
                         print 'auto add ok'
-                        self.send_msg_by_uid(u'嗨 很高兴认识朋友，感谢朋友参加直播，这是我们知识直播平台的主播用户群,有BAT大咖等 诚邀朋友加入~~进群改备注：公司-职位-姓名 '
-                                             u'~~我是趣直播创始人，一点介绍 '
-                                             u'http://mp.weixin.qq.com/s/KVr_s8bWOBfeexCmhHBpIw 有使用问题随时联系哈~~',
+                        self.send_msg_by_uid(u'感谢大家参加直播或看到趣直播的融资文章~~ 这是趣直播的主播用户群，诚邀朋友加入~~~ '
+                                             u'进群改备注:公司-职位-姓名哈 我是趣直播创始人，有问题随时联系哈~~~朋友圈有一些趣直播的直播或介绍~~~非常感谢支持~~',
                                              username)
                     else:
                         time.sleep(5)
