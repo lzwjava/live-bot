@@ -93,7 +93,6 @@ class MyWXBot(WXBot):
         self.batch_remark_names()
 
     def handle_msg_all(self, msg):
-        # print json.dumps(msg)
         if msg['msg_type_id'] == 37:
             RecommendInfo = msg['content']['data']
             time.sleep(5)

@@ -121,6 +121,7 @@ class WXBot:
         self.public_list = []  # 公众账号列表
         self.group_list = []  # 群聊列表
         self.special_list = []  # 特殊账号列表
+        self.get_group_from_contact = False
         self.encry_chat_room_id_list = []  # 存储群聊的EncryChatRoomId，获取群内成员头像时需要用到
 
         self.file_index = 0
@@ -186,7 +187,6 @@ class WXBot:
         self.contact_list = []
         self.public_list = []
         self.special_list = []
-        self.group_list = []
 
         for contact in self.member_list:
             if contact['VerifyFlag'] & 8 != 0:  # 公众号
@@ -195,22 +195,14 @@ class WXBot:
             elif contact['UserName'] in special_users:  # 特殊账户
                 self.special_list.append(contact)
                 self.account_info['normal_member'][contact['UserName']] = {'type': 'special', 'info': contact}
-            elif contact['UserName'].find('@@') != -1:  # 群聊
-                self.group_list.append(contact)
-                self.account_info['normal_member'][contact['UserName']] = {'type': 'group', 'info': contact}
             elif contact['UserName'] == self.my_account['UserName']:  # 自己
                 self.account_info['normal_member'][contact['UserName']] = {'type': 'self', 'info': contact}
             else:
                 self.contact_list.append(contact)
                 self.account_info['normal_member'][contact['UserName']] = {'type': 'contact', 'info': contact}
 
-        self.batch_get_group_members()
-
-        for group in self.group_members:
-            for member in self.group_members[group]:
-                if member['UserName'] not in self.account_info:
-                    self.account_info['group_member'][member['UserName']] = \
-                        {'type': 'group_member', 'info': member, 'group': group}
+        if self.get_group_from_contact:
+            self.init_group_list(self.member_list)
 
         if self.DEBUG:
             with open(os.path.join(self.temp_pwd, 'contact_list.json'), 'w') as f:
@@ -318,8 +310,15 @@ class WXBot:
         r = self.session.post(url, data=json.dumps(params))
         r.encoding = 'utf-8'
         dic = json.loads(r.text)
-        # print dic['ContactList']
         return dic['ContactList']
+
+    def init_group_list(self, contact_list):
+        self.group_list = []
+        for contact in contact_list:
+            if contact['UserName'].find('@@') != -1:
+                self.group_list.append(contact)
+                self.account_info['normal_member'][contact['UserName']] = {'type': 'group', 'info': contact}
+        self.batch_get_group_members()
 
     def batch_get_group_members(self):
         """批量获取所有群聊成员信息"""
@@ -341,6 +340,13 @@ class WXBot:
             encry_chat_room_id[gid] = group['EncryChatRoomId']
         self.group_members = group_members
         self.encry_chat_room_id_list = encry_chat_room_id
+
+        # update account info
+        for group in self.group_members:
+            for member in self.group_members[group]:
+                if member['UserName'] not in self.account_info:
+                    self.account_info['group_member'][member['UserName']] = \
+                        {'type': 'group_member', 'info': member, 'group': group}
 
     def get_group_member_name(self, gid, uid):
         """
@@ -1344,6 +1350,9 @@ class WXBot:
         self.my_account = dic['User']
         self.sync_key_str = '|'.join([str(keyVal['Key']) + '_' + str(keyVal['Val'])
                                       for keyVal in self.sync_key['List']])
+        if not self.get_group_from_contact:
+            self.init_group_list(dic['ContactList'])
+
         return dic['BaseResponse']['Ret'] == 0
 
     def status_notify(self):
