@@ -99,33 +99,29 @@ class MyWXBot(WXBot):
             time.sleep(5)
             username = RecommendInfo['UserName']
             nickname = RecommendInfo['NickName']
-            if not self.is_friend_in_any_group(username):
-                apply_res = self.apply_useradd_requests(RecommendInfo)
-                if not apply_res:
-                    print 'apply failed %s' % (nickname)
-                    return
-                print '[BOT] auto add user %s ' % (nickname)
-                group_username = self.group_by_nickname(nickname)
-                print group_username
-                if (self.is_friend_in_group(username, group_username)):
-                    print '[BOT] already in group skip %s' % (nickname)
+            apply_res = self.apply_useradd_requests(RecommendInfo)
+            if not apply_res:
+                print 'apply failed %s' % (nickname)
+                return
+            print '[BOT] auto add user %s ' % (nickname)
+            group_username = u'趣直播超级用户群11'
+            if (self.is_friend_in_group(username, group_username)):
+                print '[BOT] already in group skip %s' % (nickname)
+                time.sleep(5)
+                self.send_msg_by_uid(u'嗨 很高兴认识朋友~~我是趣直播创始人~~感谢朋友对趣直播的支持~请问朋友哪里高就?~~多交流或合作哈', username)
+            else:
+                time.sleep(5)
+                add_result = self.add_friend_to_group(username, group_username)
+                if add_result:
                     time.sleep(5)
-                    self.send_msg_by_uid(u'嗨 很高兴认识朋友~~我是趣直播创始人~~感谢朋友对趣直播的支持哈', username)
+                    print 'auto add ok'
+                    self.send_msg_by_uid(u'感谢大家参加直播或看到趣直播的融资文章~~ 这是趣直播的主播用户群，诚邀朋友加入~~~ '
+                                         u'进群改备注:公司-职位-姓名哈 我是趣直播创始人~~~请问朋友哪里高就?~~多交流或合作哈',
+                                         username)
                 else:
                     time.sleep(5)
-                    add_result = self.add_friend_to_group(username, group_username)
-                    if add_result:
-                        time.sleep(5)
-                        print 'auto add ok'
-                        self.send_msg_by_uid(u'感谢大家参加直播或看到趣直播的融资文章~~ 这是趣直播的主播用户群，诚邀朋友加入~~~ '
-                                             u'进群改备注:公司-职位-姓名哈 我是趣直播创始人，有问题随时联系哈~~~朋友圈有一些趣直播的直播或介绍~~~非常感谢支持~~',
-                                             username)
-                    else:
-                        time.sleep(5)
-                        print '[ERROR] fail to add friend to group'
-                        self.send_msg_by_uid(u'嗨 很高兴认识朋友~~我是趣直播创始人~~感谢朋友对趣直播的支持哈', username)
-            else:
-                print '[ERROR] already in group ignore %s ' % (nickname)
+                    print '[ERROR] fail to add friend to group'
+                    self.send_msg_by_uid(u'嗨 很高兴认识朋友~~我是趣直播创始人~~感谢朋友对趣直播的支持~~请问朋友哪里高就?想了解了解朋友哈', username)
         elif msg['msg_type_id'] == 3:
             # self.send_remark_tip(msg)
             pass

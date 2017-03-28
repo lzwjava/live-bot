@@ -918,8 +918,11 @@ class WXBot:
         try:
             r = self.session.post(url, data=data, headers=headers)
         except (ConnectionError, ReadTimeout):
+            print 'exception'
             return False
         dic = r.json()
+        if dic['BaseResponse']['Ret'] != 0:
+            print dic
         return dic['BaseResponse']['Ret'] == 0
 
     def invite_friend_to_group(self, uid, group_name):
