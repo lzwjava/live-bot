@@ -115,7 +115,7 @@ class MyWXBot(WXBot):
 
         logger.info('succeed count %d total %d' % (succeed_count, len(self.contact_list)))
 
-    def proc_msg(self):
+    def proc_msg1(self):
         self.batch_remark_names()
 
     def handle_msg_all(self, msg):
@@ -128,10 +128,10 @@ class MyWXBot(WXBot):
             if not apply_res:
                 logger.error('apply failed %s' % (nickname))
                 return
-            logger.info('[BOT] auto add user %s ' % (nickname))
+            logger.info('auto add user %s ' % (nickname))
             group_username = u'趣直播超级用户群11'
             if (self.is_friend_in_group(username, group_username)):
-                logger.info('[BOT] already in group skip %s' % (nickname))
+                logger.info('already in group skip %s' % (nickname))
                 time.sleep(5)
                 self.send_msg_by_uid(u'嗨 很高兴认识朋友~~我是趣直播创始人~~感谢朋友对趣直播的支持~请问朋友哪里高就?~~多交流或合作哈', username)
             else:
@@ -139,13 +139,15 @@ class MyWXBot(WXBot):
                 add_result = self.add_friend_to_group(username, group_username)
                 if add_result:
                     time.sleep(5)
-                    logger.info('auto add ok')
-                    self.send_msg_by_uid(u'感谢大家参加直播或看到趣直播的融资文章~~ 这是趣直播的主播用户群，诚邀朋友加入~~~ '
-                                         u'进群改备注:公司-职位-姓名哈 我是趣直播创始人~~~请问朋友哪里高就?~~多交流或合作哈',
+                    logger.info('auto add %s' % nickname)
+                    self.send_msg_by_uid((u'嗨 很高兴认识%s朋友 感谢参加直播或者看到趣直播的融资报道，感谢支持~~'
+                                          u'我是趣直播创始人，朋友圈也有趣直播介绍，有问题随时联系~~朋友在哪里高就？想多多了解朋友哈~~ '
+                                          u'这里有个我们知识直播平台的主播用户群，有BAT大咖，群里每天还有红包~~也可加下哈~~~进群改备注：公司-职位-姓名~~~'
+                                          % nickname),
                                          username)
                 else:
                     time.sleep(5)
-                    logger.info('[ERROR] fail to add friend to group')
+                    logger.error('fail to add friend to group')
                     self.send_msg_by_uid(u'嗨 很高兴认识朋友~~我是趣直播创始人~~感谢朋友对趣直播的支持~~请问朋友哪里高就?想了解了解朋友哈', username)
         elif msg['msg_type_id'] == 3:
             # self.send_remark_tip(msg)
