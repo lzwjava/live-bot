@@ -126,9 +126,9 @@ class MyWXBot(WXBot):
             nickname = RecommendInfo['NickName']
             apply_res = self.apply_useradd_requests(RecommendInfo)
             if not apply_res:
-                print 'apply failed %s' % (nickname)
+                logger.error('apply failed %s' % (nickname))
                 return
-            print '[BOT] auto add user %s ' % (nickname)
+            logger.info('[BOT] auto add user %s ' % (nickname))
             group_username = u'趣直播超级用户群11'
             if (self.is_friend_in_group(username, group_username)):
                 logger.info('[BOT] already in group skip %s' % (nickname))
