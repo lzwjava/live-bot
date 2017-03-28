@@ -6,6 +6,7 @@ from wxbot import *
 import logging
 import os
 from sys import platform
+import redis
 
 if platform == "linux" or platform == "linux2":
     is_linux = True
@@ -32,6 +33,7 @@ logger.addHandler(consoleHandler)
 class MyWXBot(WXBot):
     def __init__(self):
         WXBot.__init__(self)
+        self.redis_obj = redis.StrictRedis(host='localhost', port=6379, db=0)
 
     def all_group_names(self):
         group_names = [u'趣直播超级用户群11', u'趣直播超级用户群10', u'趣直播超级用户群9', u'趣直播超级用户群8', u'趣直播超级用户群7',
@@ -118,6 +120,16 @@ class MyWXBot(WXBot):
     def proc_msg1(self):
         self.batch_remark_names()
 
+    def save_recommend_info(self, username, recommend_info):
+        ok = self.redis_obj.hset('recommend_infos', username, json.dumps(recommend_info))
+        if ok:
+            logger.info('save recommend_info %s' % username)
+        else:
+            logger.error('save failed %s' % username)
+
+    def get_recommend_info(self, username):
+        return self.redis_obj.hget('recommend_infos', username)
+
     def handle_msg_all(self, msg):
         if msg['msg_type_id'] == 37:
             RecommendInfo = msg['content']['data']
@@ -127,6 +139,7 @@ class MyWXBot(WXBot):
             apply_res = self.apply_useradd_requests(RecommendInfo)
             if not apply_res:
                 logger.error('apply failed %s' % (nickname))
+                self.save_recommend_info(username, RecommendInfo)
                 return
             logger.info('auto add user %s ' % (nickname))
             group_username = u'趣直播超级用户群11'
