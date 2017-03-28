@@ -3,14 +3,40 @@
 #
 
 from wxbot import *
+import logging
+import os
+from sys import platform
+
+if platform == "linux" or platform == "linux2":
+    is_linux = True
+else:
+    is_linux = False
+
+if not is_linux:
+    logger_path = '/Users/lzw/Downloads/myapp.log'
+else:
+    logger_path = '/root/bot.log'
+
+logger = logging.getLogger('wxbot')
+hdlr = logging.FileHandler(logger_path)
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr)
+logger.setLevel(logging.INFO)
+
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(formatter)
+logger.addHandler(consoleHandler)
 
 
 class MyWXBot(WXBot):
+    def __init__(self):
+        WXBot.__init__(self)
+
     def all_group_names(self):
         group_names = [u'趣直播超级用户群11', u'趣直播超级用户群10', u'趣直播超级用户群9', u'趣直播超级用户群8', u'趣直播超级用户群7',
                        u'趣直播超级用户群6', u'趣直播超级用户群5', u'趣直播超级用户群4', u'趣直播超级用户群3',
                        u'趣直播超级用户群2', u'趣直播超级用户群1', u'测试']
-        # group_names = [u'测试']
         return group_names
 
     def in_live_groups(self, target_group_name):
@@ -64,18 +90,18 @@ class MyWXBot(WXBot):
                     if 'span' not in prefer_name and nickname != prefer_name:
                         remark_res = self.set_remarkname(uid, prefer_name)
                         if remark_res == 0:
-                            print  '%s changed to %s' % (nickname, prefer_name)
+                            logger.info('%s changed to %s' % (nickname, prefer_name))
                             time.sleep(10)
                             succeed_count = succeed_count + 1
                         elif remark_res == -1:
                             print 'exception'
                         elif remark_res == 1205:
-                            print 'too frequent'
+                            logger.info('too frequent ' % (succeed_count))
                             return
                         else:
-                            print 'fail to change %s to %s code %d' % (nickname, prefer_name, remark_res)
+                            logger.info('fail to change %s to %s code %d' % (nickname, prefer_name, remark_res))
                     else:
-                        print 'fail change prefer name %s , nickname %s ' % (prefer_name, nickname)
+                        logger.info('fail change prefer name %s , nickname %s ' % (prefer_name, nickname))
                 else:
                     pass
                     # print  'can not find prefer name %s'
@@ -87,9 +113,9 @@ class MyWXBot(WXBot):
                         # print 'remark name %s prefer name %s' % (remark_name, prefer_name)
                         # print 'do not need change %s to %s' % (nickname, remark_name)
 
-        print 'succeed count %d total %d' % (succeed_count, len(self.contact_list))
+        logger.info('succeed count %d total %d' % (succeed_count, len(self.contact_list)))
 
-    def proc_msg1(self):
+    def proc_msg(self):
         self.batch_remark_names()
 
     def handle_msg_all(self, msg):
@@ -105,7 +131,7 @@ class MyWXBot(WXBot):
             print '[BOT] auto add user %s ' % (nickname)
             group_username = u'趣直播超级用户群11'
             if (self.is_friend_in_group(username, group_username)):
-                print '[BOT] already in group skip %s' % (nickname)
+                logger.info('[BOT] already in group skip %s' % (nickname))
                 time.sleep(5)
                 self.send_msg_by_uid(u'嗨 很高兴认识朋友~~我是趣直播创始人~~感谢朋友对趣直播的支持~请问朋友哪里高就?~~多交流或合作哈', username)
             else:
@@ -113,19 +139,20 @@ class MyWXBot(WXBot):
                 add_result = self.add_friend_to_group(username, group_username)
                 if add_result:
                     time.sleep(5)
-                    print 'auto add ok'
+                    logger.info('auto add ok')
                     self.send_msg_by_uid(u'感谢大家参加直播或看到趣直播的融资文章~~ 这是趣直播的主播用户群，诚邀朋友加入~~~ '
                                          u'进群改备注:公司-职位-姓名哈 我是趣直播创始人~~~请问朋友哪里高就?~~多交流或合作哈',
                                          username)
                 else:
                     time.sleep(5)
-                    print '[ERROR] fail to add friend to group'
+                    logger.info('[ERROR] fail to add friend to group')
                     self.send_msg_by_uid(u'嗨 很高兴认识朋友~~我是趣直播创始人~~感谢朋友对趣直播的支持~~请问朋友哪里高就?想了解了解朋友哈', username)
         elif msg['msg_type_id'] == 3:
             # self.send_remark_tip(msg)
             pass
         elif msg['msg_type_id'] == 12:
-            self.batch_get_group_members()
+            pass
+            # self.batch_get_group_members()
 
 
             # def schedule(self):
