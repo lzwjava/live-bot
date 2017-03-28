@@ -34,6 +34,7 @@ class MyWXBot(WXBot):
     def __init__(self):
         WXBot.__init__(self)
         self.redis_obj = redis.StrictRedis(host='localhost', port=6379, db=0)
+        self.add_count = 0
 
     def all_group_names(self):
         group_names = [u'趣直播超级用户群11', u'趣直播超级用户群10', u'趣直播超级用户群9', u'趣直播超级用户群8', u'趣直播超级用户群7',
@@ -147,7 +148,8 @@ class MyWXBot(WXBot):
                 logger.error('apply failed %s' % (nickname))
                 self.save_recommend_info(username, RecommendInfo)
                 return
-            logger.info('auto add user %s ' % (nickname))
+            self.add_count = self.add_count + 1
+            logger.info('auto add user %s count: %d' % (nickname, self.add_count))
             group_username = u'趣直播超级用户群11'
             if (self.is_friend_in_group(username, group_username)):
                 logger.info('already in group skip %s' % (nickname))
