@@ -130,6 +130,12 @@ class MyWXBot(WXBot):
     def get_recommend_info(self, username):
         return self.redis_obj.hget('recommend_infos', username)
 
+    def clean_nickname(self, nickname):
+        if nickname.find('span') != -1:
+            return ''
+        else:
+            return nickname
+
     def handle_msg_all(self, msg):
         if msg['msg_type_id'] == 37:
             RecommendInfo = msg['content']['data']
@@ -156,7 +162,7 @@ class MyWXBot(WXBot):
                     self.send_msg_by_uid((u'嗨 很高兴认识%s朋友 感谢参加直播或者看到趣直播的融资报道，感谢支持~~'
                                           u'我是趣直播创始人，朋友圈也有趣直播介绍，有问题随时联系~~朋友在哪里高就？想多多了解朋友哈~~ '
                                           u'这里有个我们知识直播平台的主播用户群，有BAT大咖，群里每天还有红包~~也可加下哈~~~进群改备注：公司-职位-姓名~~~'
-                                          % nickname),
+                                          % (self.clean_nickname(nickname))),
                                          username)
                 else:
                     time.sleep(5)
