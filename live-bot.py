@@ -119,6 +119,9 @@ class MyWXBot(WXBot):
         logger.info('succeed count %d total %d' % (succeed_count, len(self.contact_list)))
 
     def proc_msg1(self):
+        for group in self.group_list:
+            group_nickname = group['NickName']
+            print group_nickname
         self.batch_remark_names()
 
     def save_recommend_info(self, username, recommend_info):
