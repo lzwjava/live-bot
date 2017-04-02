@@ -131,6 +131,12 @@ class MyWXBot(WXBot):
         else:
             logger.error('save failed %s' % username)
 
+    def save_group_recommend_info(self, username, recommend_info):
+        return self.redis_obj.hset('group_recommend_infos', username, json.dumps(recommend_info))
+
+    def get_group_recommend_info(self, username):
+        return self.redis_obj.hget('group_recommend_infos', username)
+
     def get_recommend_info(self, username):
         return self.redis_obj.hget('recommend_infos', username)
 
@@ -171,6 +177,7 @@ class MyWXBot(WXBot):
                                          username)
                 else:
                     time.sleep(5)
+                    self.save_group_recommend_info(username, RecommendInfo)
                     logger.error('fail to add friend to group')
                     self.send_msg_by_uid(u'嗨 很高兴认识朋友~~我是趣直播创始人~~感谢朋友对趣直播的支持~~请问朋友哪里高就?想了解了解朋友哈', username)
         elif msg['msg_type_id'] == 3:
