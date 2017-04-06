@@ -3,31 +3,9 @@
 #
 
 from wxbot import *
-import logging
-import os
-from sys import platform
 import redis
 
-if platform == "linux" or platform == "linux2":
-    is_linux = True
-else:
-    is_linux = False
-
-if not is_linux:
-    logger_path = '/Users/lzw/Downloads/myapp.log'
-else:
-    logger_path = '/root/bot.log'
-
-logger = logging.getLogger('wxbot')
-hdlr = logging.FileHandler(logger_path)
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr.setFormatter(formatter)
-logger.addHandler(hdlr)
-logger.setLevel(logging.INFO)
-
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(formatter)
-logger.addHandler(consoleHandler)
+logger = WXBot.init_logger()
 
 
 class MyWXBot(WXBot):
@@ -206,13 +184,9 @@ class MyWXBot(WXBot):
                 return default_group_name
 
     def userTopic(self, username):
-        url = 'https://api.quzhiboapp.com/users/userTopic'
-        params = {
+        dic = self.base_get_api_server('users/userTopic', {
             'username': username
-        }
-        r = self.session.get(url, params=params)
-        r.encoding = 'utf-8'
-        dic = json.loads(r.text)
+        })
         if dic['status'] == 'success':
             return dic['result']
         else:
@@ -225,6 +199,7 @@ def main():
     bot.DEBUG = True
     bot.conf['qr'] = 'png'
     bot.is_big_contact = False  # 如果确定通讯录过大，无法获取，可以直接配置，跳过检查。假如不是过大的话，这个方法可能无法获取所有的联系人
+    bot.get_group_from_contact = False
     bot.run()
 
 

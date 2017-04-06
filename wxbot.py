@@ -18,6 +18,8 @@ from traceback import format_exc
 from requests.exceptions import ConnectionError, ReadTimeout
 import HTMLParser
 import urllib3.contrib.pyopenssl
+import logging
+from sys import platform
 
 UNKONWN = 'unkonwn'
 SUCCESS = '200'
@@ -154,6 +156,30 @@ class WXBot:
             return string
         else:
             raise Exception('Unknown Type')
+
+    @staticmethod
+    def init_logger():
+        if platform == "linux" or platform == "linux2":
+            is_linux = True
+        else:
+            is_linux = False
+
+        if not is_linux:
+            logger_path = '/Users/lzw/Downloads/myapp.log'
+        else:
+            logger_path = '/root/bot.log'
+
+        logger = logging.getLogger('wxbot')
+        hdlr = logging.FileHandler(logger_path)
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        hdlr.setFormatter(formatter)
+        logger.addHandler(hdlr)
+        logger.setLevel(logging.INFO)
+
+        consoleHandler = logging.StreamHandler()
+        consoleHandler.setFormatter(formatter)
+        logger.addHandler(consoleHandler)
+        return logger
 
     def get_contact(self):
         """获取当前账户的所有相关账号(包括联系人、公众号、群聊、特殊账号)"""
@@ -320,20 +346,25 @@ class WXBot:
                 self.account_info['normal_member'][contact['UserName']] = {'type': 'group', 'info': contact}
         self.batch_get_group_members()
 
+    def get_group_contact(self, group_username):
+        contact_list = self.batch_get_contact([{'UserName': group_username, 'EncryChatRoomId': ''}])
+        if len(contact_list) <= 0:
+            return None
+        group = contact_list[0]
+        return group
+
+    def get_group_member_count(self, group_username):
+        group = self.get_group_contact(group_username)
+        return len(group['MemberList'])
+
     def batch_get_group_members(self):
         """批量获取所有群聊成员信息"""
-        url = self.base_uri + '/webwxbatchgetcontact?type=ex&r=%s&pass_ticket=%s' % (int(time.time()), self.pass_ticket)
-        params = {
-            'BaseRequest': self.base_request,
-            "Count": len(self.group_list),
-            "List": [{"UserName": group['UserName'], "EncryChatRoomId": ""} for group in self.group_list]
-        }
-        r = self.session.post(url, data=json.dumps(params))
-        r.encoding = 'utf-8'
-        dic = json.loads(r.text)
+        group_contacts = [{"UserName": group['UserName'], "EncryChatRoomId": ""} for group in
+                          self.group_list]
+        contact_list = self.batch_get_contact(group_contacts)
         group_members = {}
         encry_chat_room_id = {}
-        for group in dic['ContactList']:
+        for group in contact_list:
             gid = group['UserName']
             members = group['MemberList']
             group_members[gid] = members
@@ -691,6 +722,7 @@ class WXBot:
         :param r: 原始微信消息
         """
         for msg in r['AddMsgList']:
+            print json.dumps(msg)
             user = {'id': msg['FromUserName'], 'name': 'unknown'}
             if msg['MsgType'] == 51 and msg['StatusNotifyCode'] == 4:  # init message
                 msg_type_id = 0
@@ -717,6 +749,9 @@ class WXBot:
                 # print u'       附加消息：'+msg['RecommendInfo']['Content']
                 # # print u'Ticket：'+msg['RecommendInfo']['Ticket'] # Ticket添加好友时要用
                 # print u'       微信号：'+username #未设置微信号的 腾讯会自动生成一段微信ID 但是无法通过搜索 搜索到此人
+            elif msg['MsgType'] == 10000:
+                # into room
+                msg_type_id = 10000
             elif msg['FromUserName'] == self.my_account['UserName']:  # Self
                 msg_type_id = 1
                 user['name'] = 'self'
@@ -743,7 +778,7 @@ class WXBot:
             user['name'] = HTMLParser.HTMLParser().unescape(user['name'])
 
             if self.DEBUG and msg_type_id != 0:
-                print u'[MSG] %s:' % user['name']
+                print u'[MSG] type:%d %s:' % (msg_type_id, user['name'])
             content = self.extract_msg_content(msg_type_id, msg)
             message = {'msg_type_id': msg_type_id,
                        'msg_id': msg['MsgId'],
@@ -757,6 +792,9 @@ class WXBot:
         做任务型事情的函数，如果需要，可以在子类中覆盖此函数
         此函数在处理消息的间隙被调用，请不要长时间阻塞此函数
         """
+        pass
+
+    def ready(self):
         pass
 
     def proc_msg(self):
@@ -1216,6 +1254,7 @@ class WXBot:
             if self.get_contact():
                 print '[INFO] Get %d contacts' % len(self.contact_list)
                 print '[INFO] Start to process messages .'
+            self.ready()
             self.proc_msg()
             self.status = 'loginout'
         except Exception, e:
@@ -1524,3 +1563,21 @@ class WXBot:
             return -1
         dic = r.json()
         return dic['BaseResponse']['Ret']
+
+
+    def base_get_api_server(self, path, params):
+        url = 'https://api.quzhiboapp.com/' + path
+        r = self.session.get(url, params=params)
+        r.encoding = 'utf-8'
+        dic = json.loads(r.text)
+        return dic
+
+    def base_post_api_server(self, path, params):
+        url = 'https://api.quzhiboapp.com/' + path
+        headers = {'content-type': 'application/json; charset=UTF-8'}
+        data = json.dumps(params, ensure_ascii=False).encode('utf8')
+        print data
+        r = self.session.post(url, data=data, headers=headers)
+        r.encoding = 'utf-8'
+        dic = json.loads(r.text)
+        return dic
