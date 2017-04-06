@@ -722,7 +722,7 @@ class WXBot:
         :param r: 原始微信消息
         """
         for msg in r['AddMsgList']:
-            print json.dumps(msg)
+            # print json.dumps(msg)
             user = {'id': msg['FromUserName'], 'name': 'unknown'}
             if msg['MsgType'] == 51 and msg['StatusNotifyCode'] == 4:  # init message
                 msg_type_id = 0
