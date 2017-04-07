@@ -13,6 +13,7 @@ class MyWXBot(WXBot):
         WXBot.__init__(self)
         self.redis_obj = redis.StrictRedis(host='localhost', port=6379, db=0)
         self.add_count = 0
+        self.apply_failed = False
 
     def save_recommend_info(self, username, recommend_info):
         ok = self.redis_obj.hset('recommend_infos', username, json.dumps(recommend_info))
@@ -46,6 +47,7 @@ class MyWXBot(WXBot):
             if not apply_res:
                 logger.error('apply failed %s' % (nickname))
                 self.save_recommend_info(username, RecommendInfo)
+                self.apply_failed = True
                 return
             self.add_count = self.add_count + 1
             logger.info('auto add user %s count: %d' % (nickname, self.add_count))
@@ -62,6 +64,15 @@ class MyWXBot(WXBot):
         elif msg['msg_type_id'] == 12:
             pass
             # self.batch_get_group_members()
+        elif msg['msg_type_id'] == 10000 and msg['user']['id'][:2] != '@@':
+            if self.apply_failed:
+                user_id = msg['user']['id']
+                self.send_msg_by_uid((u'嗨 很高兴认识朋友~~请转发朋友圈来加入深度学习大群哈, 并截图发过来哈~~大群里有大咖,同行们,名额有限,感谢支持~~朋友圈也有一些直播回放,'
+                                      u'可观看哈'),
+                                     user_id)
+                logger.info('auto send msg 10000')
+            else:
+                logger.info('self applied not failed ignore')
 
     def add_group(self, username, nickname):
         group_username = u'深度学习DL大群'
