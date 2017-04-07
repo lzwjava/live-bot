@@ -91,7 +91,7 @@ class MyWXBot(WXBot):
             add_result = self.add_friend_to_group(username, group_username)
             if add_result:
                 logger.info('auto invite %s to group' % nickname)
-                self.send_msg_by_uid(u'请进群改备注公司-职位-姓名哈 也可发个红包和大家熟悉一下~~', username)
+                self.send_msg_by_uid(u'感谢朋友转发,请进群改备注公司-职位-姓名哈 也可发个红包和大家熟悉一下~~', username)
             else:
                 logger.error('fail to add friend to group')
                 self.send_msg_by_uid(u'感谢朋友支持 一会批量拉群哈', username)
