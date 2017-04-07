@@ -62,7 +62,7 @@ class MyWXBot(WXBot):
             content = msg['content']
             if content['type'] == 0:
                 if content['data'].find(u'群') != -1:
-                    self.send_poster_msg(username, u'嗨,很高兴认识朋友~~')
+                    self.send_poster_msg(username)
                 elif content['data'].find(u'测试') != -1:
                     self.send_msg_to_group(username)
             elif content['type'] == 3:
@@ -73,7 +73,7 @@ class MyWXBot(WXBot):
         elif msg['msg_type_id'] == 10000:
             if msg['user']['id'][:2] != '@@':
                 user_id = msg['user']['id']
-                self.send_poster_msg(user_id)
+                self.send_poster_msg(user_id, u'嗨,很高兴认识朋友~~')
                 logger.info('auto send msg 10000')
             else:
                 # group
@@ -97,13 +97,7 @@ class MyWXBot(WXBot):
         return False
 
     def send_msg_to_group(self, group_id):
-        self.send_msg_by_uid(u"""「进群方式」 请复制下方的文字和图片，转发到自己的朋友圈，然后加我微信，最后，将成功发布朋友圈的截图私信我哈～
-
------------------
-朋友圈转发文字和配图如下
-↓↓↓
-""", group_id)
-        self.send_msg_by_uid(u'我决定加入「趣直播深度学习社群」，有大咖又有直播，一起来玩转深度学习!', group_id)
+        self.send_msg_by_uid(u"请大家加我微信进深度学习大群哈, 大群里有嘉宾们, 同行们~~~", group_id)
         self.send_img_msg_by_uid('poster.jpg', group_id)
 
     def send_poster_msg(self, user_id, extra_msg=u''):
