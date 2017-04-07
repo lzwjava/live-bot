@@ -40,9 +40,12 @@ class MyWXBot(WXBot):
     def handle_msg_all(self, msg):
         if msg['msg_type_id'] == 37:
             RecommendInfo = msg['content']['data']
-            time.sleep(5)
             username = RecommendInfo['UserName']
             nickname = RecommendInfo['NickName']
+            if self.apply_failed:
+                logger.error('already apply failed')
+                self.save_recommend_info(username, RecommendInfo)
+                return
             apply_res = self.apply_useradd_requests(RecommendInfo)
             if not apply_res:
                 logger.error('apply failed %s' % (nickname))
@@ -67,8 +70,8 @@ class MyWXBot(WXBot):
         elif msg['msg_type_id'] == 10000 and msg['user']['id'][:2] != '@@':
             if self.apply_failed:
                 user_id = msg['user']['id']
-                self.send_msg_by_uid((u'嗨 很高兴认识朋友~~请转发朋友圈来加入深度学习大群哈, 并截图发过来哈~~大群里有大咖,同行们,名额有限,感谢支持~~朋友圈也有一些直播回放,'
-                                      u'可观看哈'),
+                self.send_msg_by_uid((u'嗨 很高兴认识朋友~~请转发朋友圈或者转发到相关行业群, 来加入趣直播深度学习大群~~截图发过来哈~~大群里有大咖,同行们,名额有限,'
+                                      u'感谢支持~~朋友圈也有一些直播回放,可观看哈'),
                                      user_id)
                 logger.info('auto send msg 10000')
             else:
@@ -78,17 +81,13 @@ class MyWXBot(WXBot):
         group_username = u'深度学习DL大群'
         if (self.is_friend_in_group(username, group_username)):
             logger.info('already in group skip %s' % (nickname))
-            time.sleep(2)
             self.send_msg_by_uid(u'嗨 很高兴认识朋友~~我是趣直播创始人~~感谢朋友对趣直播的支持~请问朋友哪里高就?~~多交流或合作哈', username)
         else:
-            time.sleep(2)
             add_result = self.add_friend_to_group(username, group_username)
             if add_result:
-                time.sleep(2)
                 logger.info('auto invite %s to group' % nickname)
                 self.send_msg_by_uid(u'请进群改备注公司-职位-姓名哈 也可发个红包和大家熟悉一下~~', username)
             else:
-                time.sleep(2)
                 logger.error('fail to add friend to group')
                 self.send_msg_by_uid(u'感谢朋友支持 一会批量拉群哈', username)
 
