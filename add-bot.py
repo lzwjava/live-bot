@@ -54,7 +54,8 @@ class MyWXBot(WXBot):
                 return
             self.add_count = self.add_count + 1
             logger.info('auto add user %s count: %d' % (nickname, self.add_count))
-            self.send_msg_by_uid((u'嗨 很高兴认识%s朋友~~请转发朋友圈来加入深度学习大群哈, 并截图发过来哈~~大群里有大咖,同行们,名额有限,感谢支持~~朋友圈也有一些直播回放,可观看哈'
+            self.send_msg_by_uid((u'嗨 很高兴认识%s朋友~~请转发朋友圈或者转发到相关行业群, 来加入深度学习大群哈, 并截图发过来哈~~大群里有大咖,同行们,名额有限,'
+                                  u'感谢支持~~朋友圈也有一些直播回放,可观看哈~~'
                                   % (self.clean_nickname(nickname))),
                                  username)
         elif msg['msg_type_id'] == 4 or msg['msg_type_id'] == 99:
