@@ -54,10 +54,6 @@ class MyWXBot(WXBot):
                 return
             self.add_count = self.add_count + 1
             logger.info('auto add user %s count: %d' % (nickname, self.add_count))
-            self.send_msg_by_uid((u'嗨 很高兴认识%s朋友~~请转发朋友圈或者转发到相关行业群, 来加入深度学习大群, 并截图发过来哈~~大群里有大咖,同行们,名额有限,'
-                                  u'感谢支持~~朋友圈也有一些直播回放,可观看哈~~'
-                                  % (self.clean_nickname(nickname))),
-                                 username)
         elif msg['msg_type_id'] == 4 or msg['msg_type_id'] == 99:
             # self.send_remark_tip(msg)
             username = msg['user']['id']
@@ -65,22 +61,22 @@ class MyWXBot(WXBot):
             content = msg['content']
             if content['type'] == 0:
                 if content['data'].find(u'群') != -1:
-                    self.send_msg_by_uid(u'请转发朋友圈或者转发到相关行业群, 来加入深度学习大群, '
-                                         u'并截图发过来哈~~大群里有大咖,同行们,名额有限,感谢支持~~', username)
+                    self.send_poster_msg(username, '嗨,很高兴认识朋友~~')
             elif content['type'] == 3:
                 self.add_group(username, nickname)
         elif msg['msg_type_id'] == 12:
             pass
             # self.batch_get_group_members()
         elif msg['msg_type_id'] == 10000 and msg['user']['id'][:2] != '@@':
-            if self.apply_failed:
-                user_id = msg['user']['id']
-                self.send_msg_by_uid((u'嗨 很高兴认识朋友~~请转发朋友圈或者转发到相关行业群, 来加入趣直播深度学习大群~~截图发过来哈~~大群里有大咖,同行们,名额有限,'
-                                      u'感谢支持~~朋友圈也有一些直播回放,可观看哈'),
-                                     user_id)
-                logger.info('auto send msg 10000')
-            else:
-                logger.info('self applied not failed ignore')
+            user_id = msg['user']['id']
+            self.send_poster_msg(user_id)
+            logger.info('auto send msg 10000')
+
+    def send_poster_msg(self, user_id, extra_msg = ''):
+        self.send_msg_by_uid((extra_msg + u'请转发海报到朋友圈, 并发送截图过来,'
+                                          u'来加入趣直播深度学习群哈~~大群里有大咖,同行们,名额有限,感谢支持~~'),
+                             user_id)
+        self.send_img_msg_by_uid('poster.jpg', user_id)
 
     def add_group(self, username, nickname):
         group_username = u'深度学习DL大群'
