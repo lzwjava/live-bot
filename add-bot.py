@@ -64,7 +64,7 @@ class MyWXBot(WXBot):
             nickname = msg['user']['name']
             content = msg['content']
             if content['type'] == 0:
-                if content['data'].find('进群') != -1:
+                if content['data'].find(u'群') != -1:
                     self.send_msg_by_uid(u'请转发朋友圈或者转发到相关行业群, 来加入深度学习大群, '
                                          u'并截图发过来哈~~大群里有大咖,同行们,名额有限,感谢支持~~', username)
             elif content['type'] == 3:
@@ -86,7 +86,7 @@ class MyWXBot(WXBot):
         group_username = u'深度学习DL大群'
         if (self.is_friend_in_group(username, group_username)):
             logger.info('already in group skip %s' % (nickname))
-            self.send_msg_by_uid(u'嗨 很高兴认识朋友~~我是趣直播创始人~~感谢朋友对趣直播的支持~请问朋友哪里高就?~~多交流或合作哈', username)
+            self.send_msg_by_uid(u'朋友已经在群里啦 感谢', username)
         else:
             add_result = self.add_friend_to_group(username, group_username)
             if add_result:
@@ -95,6 +95,10 @@ class MyWXBot(WXBot):
             else:
                 logger.error('fail to add friend to group')
                 self.send_msg_by_uid(u'感谢朋友支持 一会批量拉群哈', username)
+
+    def ready(self):
+        for group in self.group_list:
+            logger.info(group['NickName'])
 
 
 def main():
