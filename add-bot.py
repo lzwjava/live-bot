@@ -73,7 +73,7 @@ class MyWXBot(WXBot):
         elif msg['msg_type_id'] == 10000:
             if msg['user']['id'][:2] != '@@':
                 user_id = msg['user']['id']
-                self.send_poster_msg(user_id, u'嗨,很高兴认识朋友~~')
+                self.send_poster_msg(user_id, u'嗨,很高兴认识朋友~~小弟创业狗一枚~~感谢对趣直播的支持~~')
                 logger.info('auto send msg 10000')
             else:
                 # group
