@@ -54,7 +54,7 @@ class MyWXBot(WXBot):
                 return
             self.add_count = self.add_count + 1
             logger.info('auto add user %s count: %d' % (nickname, self.add_count))
-            self.send_msg_by_uid((u'嗨 很高兴认识%s朋友~~请转发朋友圈或者转发到相关行业群, 来加入深度学习大群哈, 并截图发过来哈~~大群里有大咖,同行们,名额有限,'
+            self.send_msg_by_uid((u'嗨 很高兴认识%s朋友~~请转发朋友圈或者转发到相关行业群, 来加入深度学习大群, 并截图发过来哈~~大群里有大咖,同行们,名额有限,'
                                   u'感谢支持~~朋友圈也有一些直播回放,可观看哈~~'
                                   % (self.clean_nickname(nickname))),
                                  username)
@@ -63,7 +63,11 @@ class MyWXBot(WXBot):
             username = msg['user']['id']
             nickname = msg['user']['name']
             content = msg['content']
-            if content['type'] == 3:
+            if content['type'] == 0:
+                if content['data'].find('进群') != -1:
+                    self.send_msg_by_uid(u'请转发朋友圈或者转发到相关行业群, 来加入深度学习大群, '
+                                         u'并截图发过来哈~~大群里有大咖,同行们,名额有限,感谢支持~~', username)
+            elif content['type'] == 3:
                 self.add_group(username, nickname)
         elif msg['msg_type_id'] == 12:
             pass
