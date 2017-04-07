@@ -63,6 +63,8 @@ class MyWXBot(WXBot):
             if content['type'] == 0:
                 if content['data'].find(u'群') != -1:
                     self.send_poster_msg(username, u'嗨,很高兴认识朋友~~')
+                elif content['data'].find(u'测试') != -1:
+                    self.send_msg_to_group(username)
             elif content['type'] == 3:
                 self.add_group(username, nickname)
         elif msg['msg_type_id'] == 12:
@@ -82,17 +84,11 @@ class MyWXBot(WXBot):
                 if (self.is_our_group(nickname)):
                     logger.info('is our group')
                     if member_count % 5 == 0:
-                        self.send_msg_by_uid(u"""
-「进群方式」 请复制下方的文字和图片，转发到自己的朋友圈，然后加我微信，最后，将成功发布朋友圈的截图私信我哈～
-
------------------
-朋友圈转发文字和配图如下
-↓↓↓
-""", group_id)
-                        self.send_msg_by_uid(u'我决定加入「趣直播深度学习社群」，有大咖又有直播，一起来玩转深度学习!')
-                        self.send_img_msg_by_uid('poster.jpg', group_id)
+                        self.send_msg_to_group(group_id)
                 else:
                     logger.info('not our group')
+        elif msg['msg_type_id'] == 1:
+            pass
 
     def is_our_group(self, nickname):
         for wechatGroup in self.wechatGroups:
@@ -100,9 +96,19 @@ class MyWXBot(WXBot):
                 return True
         return False
 
+    def send_msg_to_group(self, group_id):
+        self.send_msg_by_uid(u"""「进群方式」 请复制下方的文字和图片，转发到自己的朋友圈，然后加我微信，最后，将成功发布朋友圈的截图私信我哈～
+
+-----------------
+朋友圈转发文字和配图如下
+↓↓↓
+""", group_id)
+        self.send_msg_by_uid(u'我决定加入「趣直播深度学习社群」，有大咖又有直播，一起来玩转深度学习!', group_id)
+        self.send_img_msg_by_uid('poster.jpg', group_id)
+
     def send_poster_msg(self, user_id, extra_msg=u''):
-        self.send_msg_by_uid((extra_msg + u'请转发海报到朋友圈, 并发送截图过来,'
-                                          u'来加入趣直播深度学习群哈~~大群里有大咖,同行们,名额有限,感谢支持~~'),
+        self.send_msg_by_uid((extra_msg + u'请转发海报到朋友圈，并发送截图过来，'
+                                          u'来加入趣直播深度学习群哈~~大群里有大咖、同行们，名额有限，感谢支持~~'),
                              user_id)
         self.send_img_msg_by_uid('poster.jpg', user_id)
 
@@ -122,14 +128,15 @@ class MyWXBot(WXBot):
 
     def ready(self):
         self.wechatGroups = self.get_all_api_group()
-        logger.info(json.dumps(self.wechatGroups))
         for group in self.group_list:
             logger.info(group['NickName'])
+            is_our_group = self.is_our_group(group['NickName'])
+            logger.info('is our group ' + str(is_our_group))
 
     def get_all_api_group(self):
         res = self.base_get_api_server('wechatGroups')
         if res['status'] == 'success':
-            self.wechatGroups = res['data']
+            return res['result']
         else:
             raise Exception('get group failed')
 

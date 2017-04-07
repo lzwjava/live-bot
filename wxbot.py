@@ -1564,8 +1564,7 @@ class WXBot:
         dic = r.json()
         return dic['BaseResponse']['Ret']
 
-
-    def base_get_api_server(self, path, params):
+    def base_get_api_server(self, path, params={}):
         url = 'https://api.quzhiboapp.com/' + path
         r = self.session.get(url, params=params)
         r.encoding = 'utf-8'
@@ -1576,7 +1575,6 @@ class WXBot:
         url = 'https://api.quzhiboapp.com/' + path
         headers = {'content-type': 'application/json; charset=UTF-8'}
         data = json.dumps(params, ensure_ascii=False).encode('utf8')
-        print data
         r = self.session.post(url, data=data, headers=headers)
         r.encoding = 'utf-8'
         dic = json.loads(r.text)
