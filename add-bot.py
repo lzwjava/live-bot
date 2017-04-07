@@ -14,6 +14,7 @@ class MyWXBot(WXBot):
         self.redis_obj = redis.StrictRedis(host='localhost', port=6379, db=0)
         self.add_count = 0
         self.apply_failed = False
+        self.wechatGroups = []
 
     def save_recommend_info(self, username, recommend_info):
         ok = self.redis_obj.hset('recommend_infos', username, json.dumps(recommend_info))
@@ -61,18 +62,45 @@ class MyWXBot(WXBot):
             content = msg['content']
             if content['type'] == 0:
                 if content['data'].find(u'群') != -1:
-                    self.send_poster_msg(username, '嗨,很高兴认识朋友~~')
+                    self.send_poster_msg(username, u'嗨,很高兴认识朋友~~')
             elif content['type'] == 3:
                 self.add_group(username, nickname)
         elif msg['msg_type_id'] == 12:
             pass
             # self.batch_get_group_members()
-        elif msg['msg_type_id'] == 10000 and msg['user']['id'][:2] != '@@':
-            user_id = msg['user']['id']
-            self.send_poster_msg(user_id)
-            logger.info('auto send msg 10000')
+        elif msg['msg_type_id'] == 10000:
+            if msg['user']['id'][:2] != '@@':
+                user_id = msg['user']['id']
+                self.send_poster_msg(user_id)
+                logger.info('auto send msg 10000')
+            else:
+                # group
+                group_id = msg['user']['id']
+                group = self.get_group_contact(group_id)
+                nickname = group['NickName']
+                member_count = len(group['MemberList'])
+                if (self.is_our_group(nickname)):
+                    logger.info('is our group')
+                    if member_count % 5 == 0:
+                        self.send_msg_by_uid(u"""
+「进群方式」 请复制下方的文字和图片，转发到自己的朋友圈，然后加我微信，最后，将成功发布朋友圈的截图私信我哈～
 
-    def send_poster_msg(self, user_id, extra_msg = ''):
+-----------------
+朋友圈转发文字和配图如下
+↓↓↓
+""", group_id)
+                        self.send_msg_by_uid(u'我决定加入「趣直播深度学习社群」，有大咖又有直播，一起来玩转深度学习!')
+                        self.send_img_msg_by_uid('poster.jpg', group_id)
+                else:
+                    logger.info('not our group')
+
+    def is_our_group(self, nickname):
+        for wechatGroup in self.wechatGroups:
+            if wechatGroup['groupUserName'] == nickname:
+                return True
+        return False
+
+    def send_poster_msg(self, user_id, extra_msg=u''):
         self.send_msg_by_uid((extra_msg + u'请转发海报到朋友圈, 并发送截图过来,'
                                           u'来加入趣直播深度学习群哈~~大群里有大咖,同行们,名额有限,感谢支持~~'),
                              user_id)
@@ -93,8 +121,17 @@ class MyWXBot(WXBot):
                 self.send_msg_by_uid(u'感谢朋友支持 一会批量拉群哈', username)
 
     def ready(self):
+        self.wechatGroups = self.get_all_api_group()
+        logger.info(json.dumps(self.wechatGroups))
         for group in self.group_list:
             logger.info(group['NickName'])
+
+    def get_all_api_group(self):
+        res = self.base_get_api_server('wechatGroups')
+        if res['status'] == 'success':
+            self.wechatGroups = res['data']
+        else:
+            raise Exception('get group failed')
 
 
 def main():
