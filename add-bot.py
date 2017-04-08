@@ -81,7 +81,8 @@ class MyWXBot(WXBot):
                 group = self.get_group_contact(group_id)
                 nickname = group['NickName']
                 member_count = len(group['MemberList'])
-                if (self.is_our_group(nickname)):
+                wechatGroup = self.get_group_by_name(nickname)
+                if (wechatGroup is not None):
                     logger.info('is our group')
                     if member_count % 5 == 0:
                         self.send_msg_to_group(group_id)
@@ -90,6 +91,12 @@ class MyWXBot(WXBot):
         elif msg['msg_type_id'] == 1:
             pass
 
+    def get_group_by_name(self, nickname):
+        for wechatGroup in self.wechatGroups:
+            if wechatGroup['groupUserName'] == nickname:
+                return wechatGroup
+        return None
+
     def is_our_group(self, nickname):
         for wechatGroup in self.wechatGroups:
             if wechatGroup['groupUserName'] == nickname:
@@ -97,17 +104,18 @@ class MyWXBot(WXBot):
         return False
 
     def send_msg_to_group(self, group_id):
-        self.send_msg_by_uid(u"请大家加我微信进深度学习大群哈, 大群里有嘉宾们, 同行们~~~", group_id)
+        self.send_msg_by_uid(u"请大家加我微信进互联网交流群哈, 大群里有嘉宾们, 同行们~~~如果已经是好友, 请私信我「加群」来加入哈", group_id)
         self.send_img_msg_by_uid('poster.jpg', group_id)
 
     def send_poster_msg(self, user_id, extra_msg=u''):
-        self.send_msg_by_uid((extra_msg + u'请转发海报到朋友圈，并发送截图过来，'
-                                          u'来加入趣直播深度学习群哈~~大群里有大咖、同行们，名额有限，感谢支持~~'),
+        self.send_msg_by_uid((extra_msg + u'请转发海报到朋友圈，配上文字(可自行修改), 并发送截图过来，'
+                                          u'来加入趣直播互联网交流群哈~~大群里有大咖、同行们，名额有限，感谢支持~~'),
                              user_id)
+        self.send_msg('我决定加入「趣直播互联网交流群」, 和大咖们一起聊产品，聊思维，长见识!')
         self.send_img_msg_by_uid('poster.jpg', user_id)
 
     def add_group(self, username, nickname):
-        group_username = u'深度学习DL大群'
+        group_username = u'互联网交流大群'
         if (self.is_friend_in_group(username, group_username)):
             logger.info('already in group skip %s' % (nickname))
             self.send_msg_by_uid(u'朋友已经在群里啦 感谢', username)
@@ -115,7 +123,7 @@ class MyWXBot(WXBot):
             add_result = self.add_friend_to_group(username, group_username)
             if add_result:
                 logger.info('auto invite %s to group' % nickname)
-                self.send_msg_by_uid(u'感谢朋友转发,请进群改备注公司-职位-姓名哈 也可发个红包和大家熟悉一下~~', username)
+                self.send_msg_by_uid(u'感谢朋友转发,请保留24小时哈,请进群改备注公司-职位-姓名哈 也可介绍自己, 发个红包和大家熟悉一下~~', username)
             else:
                 logger.error('fail to add friend to group')
                 self.send_msg_by_uid(u'感谢朋友支持 一会批量拉群哈', username)

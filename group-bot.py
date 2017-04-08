@@ -32,7 +32,7 @@ class MyWXBot(WXBot):
     def ready(self):
         for group in self.group_list:
             group_username = group['UserName']
-            logger.info(group_username)
+            logger.info(group['NickName'])
             self.update_member_count_by_id(group_username)
 
 
