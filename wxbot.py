@@ -94,6 +94,7 @@ class WXBot:
         status = 'wait4login'  # 表示机器人状态，供WEBAPI读取，WxbotManage使用
         bot_conf = {}  # 机器人配置，在webapi初始化的时候传入，后续也可修改，WxbotManage使用
 
+        self.use_merge = True
         self.batch_count = 50  # 一次拉取50个联系人的信息
         self.full_user_name_list = []  # 直接获取不到通讯录时，获取的username列表
         self.wxid_list = []  # 获取到的wxid的列表
@@ -372,7 +373,7 @@ class WXBot:
         group = self.get_group_contact(group_username)
         return len(group['MemberList'])
 
-    def is_our_group(self, nickname):
+    def is_our_wechat_group(self, nickname):
         if nickname.find(u'趣直播') != -1 or nickname == u'深度学习DL大群' or nickname == u'互联网交流大群':
             return True
         else:
@@ -398,7 +399,9 @@ class WXBot:
             members = group['MemberList']
             group_members[gid] = members
             encry_chat_room_id[gid] = group['EncryChatRoomId']
-            if self.is_our_group(group['NickName']):
+            if not self.use_merge:
+                continue
+            if self.is_our_wechat_group(group['NickName']):
                 print 'merge our group %s ' % (group['NickName'])
                 username_list = []
                 for m in members:
@@ -412,8 +415,9 @@ class WXBot:
                     if not self.is_contact_list_contain(m['UserName']):
                         self.contact_list.append(m)
             else:
+                print '%s not our group skip' % (group['NickName'])
                 pass
-                # print '%s not our group skip' % (group['NickName'])
+
         self.group_members = group_members
         self.encry_chat_room_id_list = encry_chat_room_id
 

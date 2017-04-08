@@ -14,6 +14,7 @@ class MyWXBot(WXBot):
         self.redis_obj = redis.StrictRedis(host='localhost', port=6379, db=0)
         self.add_count = 0
         self.apply_failed = False
+        self.add_group_name = u'互联网交流大群'
         self.wechatGroups = []
 
     def save_recommend_info(self, username, recommend_info):
@@ -130,7 +131,7 @@ class MyWXBot(WXBot):
         self.send_img_msg_by_uid('poster.jpg', user_id)
 
     def add_group(self, username, nickname):
-        group_username = u'互联网交流大群'
+        group_username = self.add_group_name
         if (self.is_friend_in_group(username, group_username)):
             logger.info('already in group skip %s' % (nickname))
             self.send_msg_by_uid(u'朋友已经在群里啦 感谢', username)
@@ -145,10 +146,15 @@ class MyWXBot(WXBot):
 
     def ready(self):
         self.wechatGroups = self.get_all_api_group()
+        have_target_group = False
         for group in self.group_list:
             logger.info(group['NickName'])
             is_our_group = self.is_our_group(group['NickName'])
             logger.info('is our group ' + str(is_our_group))
+            if group['NickName'] == self.add_group_name:
+                have_target_group = True
+        if not have_target_group:
+            raise Exception('not have target group')
 
     def get_all_api_group(self):
         res = self.base_get_api_server('wechatGroups')
