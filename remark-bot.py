@@ -32,20 +32,22 @@ class MyWXBot(WXBot):
         for contact in self.contact_list:
             uid = contact['UserName']
             nickname = contact['NickName']
-            remark_name = contact['RemarkName']
-            if not remark_name:
+            if 'RemarkName' not in contact or not contact['RemarkName']:
                 prefer_name = self.get_prefer_username(uid)
                 if prefer_name is not None:
-                    if 'span' not in prefer_name and nickname != prefer_name:
+                    if nickname == prefer_name:
+                        logger.info('%s name equal skip', nickname)
+                    elif 'span' not in prefer_name:
                         remark_res = self.set_remarkname(uid, prefer_name)
                         if remark_res == 0:
                             logger.info('%s changed to %s' % (nickname, prefer_name))
                             time.sleep(10)
+                            self.send_msg_by_uid(u'%s 备注为 %s' % (nickname, prefer_name))
                             succeed_count = succeed_count + 1
                         elif remark_res == -1:
                             print 'exception'
                         elif remark_res == 1205:
-                            logger.info('too frequent ' % (succeed_count))
+                            logger.info('too frequent %d' % (succeed_count))
                             return
                         else:
                             logger.info('fail to change %s to %s code %d' % (nickname, prefer_name, remark_res))
@@ -57,10 +59,9 @@ class MyWXBot(WXBot):
             else:
                 prefer_name = self.get_prefer_username(uid)
                 if prefer_name is not None:
-                    if remark_name != prefer_name:
-                        pass
-                        # print 'remark name %s prefer name %s' % (remark_name, prefer_name)
-                        # print 'do not need change %s to %s' % (nickname, remark_name)
+                    pass
+                    # print 'remark name %s prefer name %s' % (remark_name, prefer_name)
+                    # print 'do not need change %s to %s' % (nickname, remark_name)
 
         logger.info('succeed count %d total %d' % (succeed_count, len(self.contact_list)))
 

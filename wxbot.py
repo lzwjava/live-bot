@@ -94,7 +94,7 @@ class WXBot:
         status = 'wait4login'  # 表示机器人状态，供WEBAPI读取，WxbotManage使用
         bot_conf = {}  # 机器人配置，在webapi初始化的时候传入，后续也可修改，WxbotManage使用
 
-        self.batch_count = 50  # 一次拉取50个联系人的信息
+        self.batch_count = 500  # 一次拉取50个联系人的信息
         self.full_user_name_list = []  # 直接获取不到通讯录时，获取的username列表
         self.wxid_list = []  # 获取到的wxid的列表
         self.cursor = 0  # 拉取联系人信息的游标
@@ -183,17 +183,11 @@ class WXBot:
 
     def get_contact(self):
         """获取当前账户的所有相关账号(包括联系人、公众号、群聊、特殊账号)"""
-        if self.is_big_contact:
-            return False
         url = self.base_uri + '/webwxgetcontact?pass_ticket=%s&skey=%s&r=%s' \
                               % (self.pass_ticket, self.skey, int(time.time()))
 
         # 如果通讯录联系人过多，这里会直接获取失败
-        try:
-            r = self.session.post(url, data='{}')
-        except Exception as e:
-            self.is_big_contact = True
-            return False
+        r = self.session.post(url, data='{}')
         r.encoding = 'utf-8'
         if self.DEBUG:
             with open(os.path.join(self.temp_pwd, 'contacts.json'), 'w') as f:
@@ -227,9 +221,9 @@ class WXBot:
                 self.contact_list.append(contact)
                 self.account_info['normal_member'][contact['UserName']] = {'type': 'contact', 'info': contact}
 
-        if self.get_group_from_contact:
-            self.init_group_list(self.member_list)
+        return True
 
+    def dumps_json(self):
         if self.DEBUG:
             with open(os.path.join(self.temp_pwd, 'contact_list.json'), 'w') as f:
                 f.write(json.dumps(self.contact_list))
@@ -245,9 +239,8 @@ class WXBot:
                 f.write(json.dumps(self.group_members))
             with open(os.path.join(self.temp_pwd, 'account_info.json'), 'w') as f:
                 f.write(json.dumps(self.account_info))
-        return True
 
-    def get_big_contact(self):
+    def get_user_info_list(self):
         total_len = len(self.full_user_name_list)
         user_info_list = []
         # print 'total len %d' % (total_len)
@@ -260,7 +253,17 @@ class WXBot:
             cur_batch = map(map_username_batch, cur_batch)
             user_info_list += self.batch_get_contact(cur_batch)
             print "[INFO] Get batch contacts"
+        return user_info_list
 
+    def init_big_group(self):
+        user_info_list = self.get_user_info_list()
+        self.init_group_list(user_info_list)
+        self.dumps_json()
+        self.print_contact_and_group()
+        self.ready()
+
+    def get_big_contact(self):
+        user_info_list = self.get_user_info_list()
         self.member_list = user_info_list
         special_users = ['newsapp', 'filehelper', 'weibo', 'qqmail',
                          'fmessage', 'tmessage', 'qmessage', 'qqsync', 'floatbottle',
@@ -325,6 +328,13 @@ class WXBot:
         print '[INFO] Start to process messages .'
         return True
 
+    def print_contact_and_group(self):
+        for group in self.group_list:
+            print group['NickName']
+        # for contact in self.contact_list:
+        #     print contact['NickName']
+        print 'total contact %d total group %d' % (len(self.contact_list), len(self.group_list))
+
     def batch_get_contact(self, cur_batch):
         """批量获取成员信息"""
         url = self.base_uri + '/webwxbatchgetcontact?type=ex&r=%s&pass_ticket=%s' % (int(time.time()), self.pass_ticket)
@@ -357,6 +367,18 @@ class WXBot:
         group = self.get_group_contact(group_username)
         return len(group['MemberList'])
 
+    def is_our_group(self, nickname):
+        if nickname.find(u'趣直播') != -1 or nickname == u'深度学习DL大群' or nickname == u'互联网交流大群':
+            return True
+        else:
+            return False
+
+    def is_contact_list_contain(self, username):
+        for contact in self.contact_list:
+            if contact['UserName'] == username:
+                return True
+        return False
+
     def batch_get_group_members(self):
         """批量获取所有群聊成员信息"""
         group_contacts = [{"UserName": group['UserName'], "EncryChatRoomId": ""} for group in
@@ -368,6 +390,12 @@ class WXBot:
             gid = group['UserName']
             members = group['MemberList']
             group_members[gid] = members
+            if self.is_our_group(group['NickName']):
+                print 'merge our group %s ' % (group['NickName'])
+                for m in members:
+                    if not self.is_contact_list_contain(m['UserName']):
+                        self.contact_list.append(m)
+
             encry_chat_room_id[gid] = group['EncryChatRoomId']
         self.group_members = group_members
         self.encry_chat_room_id_list = encry_chat_room_id
@@ -722,13 +750,13 @@ class WXBot:
         :param r: 原始微信消息
         """
         for msg in r['AddMsgList']:
-            # print json.dumps(msg)
+            print json.dumps(msg)
             user = {'id': msg['FromUserName'], 'name': 'unknown'}
             if msg['MsgType'] == 51 and msg['StatusNotifyCode'] == 4:  # init message
                 msg_type_id = 0
                 user['name'] = 'system'
                 # 会获取所有联系人的username 和 wxid，但是会收到3次这个消息，只取第一次
-                if self.is_big_contact and len(self.full_user_name_list) == 0:
+                if len(self.full_user_name_list) == 0:
                     self.full_user_name_list = msg['StatusNotifyUserName'].split(",")
                     self.wxid_list = re.search(r"username&gt;(.*?)&lt;/username", msg["Content"]).group(1).split(",")
                     with open(os.path.join(self.temp_pwd, 'UserName.txt'), 'w') as f:
@@ -736,7 +764,8 @@ class WXBot:
                     with open(os.path.join(self.temp_pwd, 'wxid.txt'), 'w') as f:
                         f.write(json.dumps(self.wxid_list))
                     print "[INFO] Contact list is too big. Now start to fetch member list ."
-                    self.get_big_contact()
+                    self.init_big_group()
+                    # self.get_big_contact()
 
             elif msg['MsgType'] == 37:  # friend request
                 msg_type_id = 37
@@ -750,7 +779,7 @@ class WXBot:
                 # # print u'Ticket：'+msg['RecommendInfo']['Ticket'] # Ticket添加好友时要用
                 # print u'       微信号：'+username #未设置微信号的 腾讯会自动生成一段微信ID 但是无法通过搜索 搜索到此人
             elif msg['MsgType'] == 10000:
-                # into room
+                # system msg
                 msg_type_id = 10000
             elif msg['FromUserName'] == self.my_account['UserName']:  # Self
                 msg_type_id = 1
@@ -1254,7 +1283,6 @@ class WXBot:
             if self.get_contact():
                 print '[INFO] Get %d contacts' % len(self.contact_list)
                 print '[INFO] Start to process messages .'
-            self.ready()
             self.proc_msg()
             self.status = 'loginout'
         except Exception, e:
@@ -1389,8 +1417,6 @@ class WXBot:
         self.my_account = dic['User']
         self.sync_key_str = '|'.join([str(keyVal['Key']) + '_' + str(keyVal['Val'])
                                       for keyVal in self.sync_key['List']])
-        if not self.get_group_from_contact:
-            self.init_group_list(dic['ContactList'])
 
         return dic['BaseResponse']['Ret'] == 0
 

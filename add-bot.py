@@ -56,6 +56,9 @@ class MyWXBot(WXBot):
             self.add_count = self.add_count + 1
             logger.info('auto add user %s count: %d' % (nickname, self.add_count))
             # self.send_poster_msg(username, u'嗨,很高兴认识朋友~~小弟创业狗一枚~~感谢对趣直播的支持~~')
+        elif msg['msg_type_id'] == 3:
+            # known group
+            pass
         elif msg['msg_type_id'] == 4 or msg['msg_type_id'] == 99:
             # self.send_remark_tip(msg)
             username = msg['user']['id']
@@ -72,26 +75,36 @@ class MyWXBot(WXBot):
             pass
             # self.batch_get_group_members()
         elif msg['msg_type_id'] == 10000:
-            if msg['user']['id'][:2] != '@@':
-                user_id = msg['user']['id']
-                time.sleep(3)
-                self.send_poster_msg(user_id, u'嗨,很高兴认识朋友~~小弟创业狗一枚~~感谢对趣直播的支持~~')
-                logger.info('auto send msg 10000')
-            else:
-                # group
-                group_id = msg['user']['id']
-                group = self.get_group_contact(group_id)
-                nickname = group['NickName']
-                member_count = len(group['MemberList'])
-                wechatGroup = self.get_group_by_name(nickname)
-                if (wechatGroup is not None):
-                    logger.info('is our group')
-                    if member_count % 5 == 0:
-                        self.send_msg_to_group(group_id)
-                else:
-                    logger.info('not our group')
+            user_id = msg['user']['id']
+            if user_id[:1] == '@' and user_id[1:2] != '@':
+                # single chat
+                content = msg['content']['data']
+                if content.find(u'现在可以开始聊天了') != -1:
+                    user_id = msg['user']['id']
+                    time.sleep(3)
+                    self.send_poster_msg(user_id, u'嗨,很高兴认识朋友~~小弟创业狗一枚~~感谢对趣直播的支持~~')
+                    logger.info('auto send msg 10000')
+                elif content.find(u'收到红包') != -1:
+                    logger.info('receive packet')
+            elif user_id[:2] == '@@':
+                content = msg['content']['data']
+                if content.find(u'通过扫描你分享的二维码加入群聊') != -1:
+                    self.check_group_and_send(user_id)
+
         elif msg['msg_type_id'] == 1:
             pass
+
+    def check_group_and_send(self, group_id):
+        group = self.get_group_contact(group_id)
+        nickname = group['NickName']
+        member_count = len(group['MemberList'])
+        wechatGroup = self.get_group_by_name(nickname)
+        if (wechatGroup is not None):
+            logger.info('is our group')
+            if member_count % 5 == 0:
+                self.send_msg_to_group(group_id)
+        else:
+            logger.info('not our group')
 
     def get_group_by_name(self, nickname):
         for wechatGroup in self.wechatGroups:
@@ -149,7 +162,7 @@ def main():
     bot = MyWXBot()
     bot.DEBUG = True
     bot.conf['qr'] = 'png'
-    bot.is_big_contact = False  # 如果确定通讯录过大，无法获取，可以直接配置，跳过检查。假如不是过大的话，这个方法可能无法获取所有的联系人
+    bot.is_big_contact = True  # 如果确定通讯录过大，无法获取，可以直接配置，跳过检查。假如不是过大的话，这个方法可能无法获取所有的联系人
     bot.get_group_from_contact = False
     bot.run()
 
