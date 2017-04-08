@@ -94,11 +94,9 @@ class WXBot:
         status = 'wait4login'  # 表示机器人状态，供WEBAPI读取，WxbotManage使用
         bot_conf = {}  # 机器人配置，在webapi初始化的时候传入，后续也可修改，WxbotManage使用
 
-        self.batch_count = 500  # 一次拉取50个联系人的信息
+        self.batch_count = 50  # 一次拉取50个联系人的信息
         self.full_user_name_list = []  # 直接获取不到通讯录时，获取的username列表
         self.wxid_list = []  # 获取到的wxid的列表
-        self.cursor = 0  # 拉取联系人信息的游标
-        self.is_big_contact = False  # 通讯录人数过多，无法直接获取
         # 文件缓存目录
         self.temp_pwd = os.path.join(os.getcwd(), 'temp')
         if os.path.exists(self.temp_pwd) == False:
@@ -123,7 +121,6 @@ class WXBot:
         self.public_list = []  # 公众账号列表
         self.group_list = []  # 群聊列表
         self.special_list = []  # 特殊账号列表
-        self.get_group_from_contact = False
         self.encry_chat_room_id_list = []  # 存储群聊的EncryChatRoomId，获取群内成员头像时需要用到
 
         self.file_index = 0
@@ -240,23 +237,30 @@ class WXBot:
             with open(os.path.join(self.temp_pwd, 'account_info.json'), 'w') as f:
                 f.write(json.dumps(self.account_info))
 
-    def get_user_info_list(self):
-        total_len = len(self.full_user_name_list)
+    def multiple_batch_get_contact(self, username_list):
+        print 'batch require length: %d' % len(username_list)
+        total_len = len(username_list)
         user_info_list = []
+        cursor = 0
+        while cursor < total_len:
+            cur_batch = username_list[cursor:(cursor + self.batch_count)]
+            cursor += self.batch_count
+            cur_batch = map(map_username_batch, cur_batch)
+            user_info_list += self.batch_get_contact(cur_batch)
+            print "[INFO] Get batch contacts"
+        print 'batch return length: %d' % len(user_info_list)
+        return user_info_list
+
+    def get_user_info_list(self):
+        return self.multiple_batch_get_contact(self.full_user_name_list)
         # print 'total len %d' % (total_len)
         # print json.dumps(self.full_user_name_list)
 
         # 一次拉取50个联系人的信息，包括所有的群聊，公众号，好友
-        while self.cursor < total_len:
-            cur_batch = self.full_user_name_list[self.cursor:(self.cursor + self.batch_count)]
-            self.cursor += self.batch_count
-            cur_batch = map(map_username_batch, cur_batch)
-            user_info_list += self.batch_get_contact(cur_batch)
-            print "[INFO] Get batch contacts"
-        return user_info_list
 
     def init_big_group(self):
         user_info_list = self.get_user_info_list()
+        print 'user info list get count: %d' % len(user_info_list)
         self.init_group_list(user_info_list)
         self.dumps_json()
         self.print_contact_and_group()
@@ -330,7 +334,8 @@ class WXBot:
 
     def print_contact_and_group(self):
         for group in self.group_list:
-            print group['NickName']
+            pass
+            # print group['NickName']
         # for contact in self.contact_list:
         #     print contact['NickName']
         print 'total contact %d total group %d' % (len(self.contact_list), len(self.group_list))
@@ -381,22 +386,34 @@ class WXBot:
 
     def batch_get_group_members(self):
         """批量获取所有群聊成员信息"""
-        group_contacts = [{"UserName": group['UserName'], "EncryChatRoomId": ""} for group in
-                          self.group_list]
-        contact_list = self.batch_get_contact(group_contacts)
+        group_usernames = []
+        for group in self.group_list:
+            group_usernames.append(group['UserName'])
+        group_contact_list = self.multiple_batch_get_contact(group_usernames)
+        print 'group contact count: %d' % len(group_contact_list)
         group_members = {}
         encry_chat_room_id = {}
-        for group in contact_list:
+        for group in group_contact_list:
             gid = group['UserName']
             members = group['MemberList']
             group_members[gid] = members
+            encry_chat_room_id[gid] = group['EncryChatRoomId']
             if self.is_our_group(group['NickName']):
                 print 'merge our group %s ' % (group['NickName'])
+                username_list = []
                 for m in members:
+                    username_list.append(m['UserName'])
+                print 'user name list count %d' % len(username_list)
+                user_contact_list = self.multiple_batch_get_contact(username_list)
+                print  'return count %d' % len(user_contact_list)
+                with open(os.path.join(self.temp_pwd, 'batch_get_%s.json' % gid), 'w') as f:
+                    f.write(json.dumps(user_contact_list))
+                for m in user_contact_list:
                     if not self.is_contact_list_contain(m['UserName']):
                         self.contact_list.append(m)
-
-            encry_chat_room_id[gid] = group['EncryChatRoomId']
+            else:
+                pass
+                # print '%s not our group skip' % (group['NickName'])
         self.group_members = group_members
         self.encry_chat_room_id_list = encry_chat_room_id
 
@@ -750,7 +767,7 @@ class WXBot:
         :param r: 原始微信消息
         """
         for msg in r['AddMsgList']:
-            print json.dumps(msg)
+            # print json.dumps(msg)
             user = {'id': msg['FromUserName'], 'name': 'unknown'}
             if msg['MsgType'] == 51 and msg['StatusNotifyCode'] == 4:  # init message
                 msg_type_id = 0
@@ -760,7 +777,7 @@ class WXBot:
                     self.full_user_name_list = msg['StatusNotifyUserName'].split(",")
                     self.wxid_list = re.search(r"username&gt;(.*?)&lt;/username", msg["Content"]).group(1).split(",")
                     with open(os.path.join(self.temp_pwd, 'UserName.txt'), 'w') as f:
-                        f.write(msg['StatusNotifyUserName'])
+                        f.write(json.dumps(self.full_user_name_list))
                     with open(os.path.join(self.temp_pwd, 'wxid.txt'), 'w') as f:
                         f.write(json.dumps(self.wxid_list))
                     print "[INFO] Contact list is too big. Now start to fetch member list ."
