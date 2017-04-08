@@ -55,6 +55,7 @@ class MyWXBot(WXBot):
                 return
             self.add_count = self.add_count + 1
             logger.info('auto add user %s count: %d' % (nickname, self.add_count))
+            # self.send_poster_msg(username, u'嗨,很高兴认识朋友~~小弟创业狗一枚~~感谢对趣直播的支持~~')
         elif msg['msg_type_id'] == 4 or msg['msg_type_id'] == 99:
             # self.send_remark_tip(msg)
             username = msg['user']['id']
@@ -73,6 +74,7 @@ class MyWXBot(WXBot):
         elif msg['msg_type_id'] == 10000:
             if msg['user']['id'][:2] != '@@':
                 user_id = msg['user']['id']
+                time.sleep(3)
                 self.send_poster_msg(user_id, u'嗨,很高兴认识朋友~~小弟创业狗一枚~~感谢对趣直播的支持~~')
                 logger.info('auto send msg 10000')
             else:
@@ -105,14 +107,14 @@ class MyWXBot(WXBot):
 
     def send_msg_to_group(self, group_id):
         self.send_msg_by_uid(u"请大家加我微信进互联网交流群哈, 大群里有嘉宾们, 同行们~~~如果已经是好友, 请私信我「加群」来加入哈", group_id)
-        self.send_img_msg_by_uid('poster.jpg', group_id)
+        # self.send_img_msg_by_uid('poster.jpg', group_id)
 
     def send_poster_msg(self, user_id, extra_msg=u''):
         self.send_msg_by_uid((extra_msg + u'请转发海报到朋友圈，配上文字(可自行修改), 并发送截图过来，'
                                           u'来加入趣直播互联网交流群哈~~大群里有大咖、同行们，名额有限，感谢支持~~'),
                              user_id)
-        self.send_msg('我决定加入「趣直播互联网交流群」, 和大咖们一起聊产品，聊思维，长见识!')
-        self.send_img_msg_by_uid('poster.jpg', user_id)
+        self.send_msg_by_uid(u'我决定加入「趣直播互联网交流群」, 和大咖们一起聊产品，聊思维，长见识!', user_id)
+        # self.send_img_msg_by_uid('poster.jpg', user_id)
 
     def add_group(self, username, nickname):
         group_username = u'互联网交流大群'
