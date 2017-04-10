@@ -63,7 +63,6 @@ class MyWXBot(WXBot):
         elif msg['msg_type_id'] == 4 or msg['msg_type_id'] == 99:
             # self.send_remark_tip(msg)
             username = msg['user']['id']
-            nickname = msg['user']['name']
             content = msg['content']
             if content['type'] == 0:
                 if content['data'].find(u'群') != -1:
@@ -71,7 +70,7 @@ class MyWXBot(WXBot):
                 elif content['data'].find(u'测试') != -1:
                     self.send_msg_to_group(username)
             elif content['type'] == 3:
-                self.add_group(username, nickname)
+                self.add_group(username)
         elif msg['msg_type_id'] == 12:
             pass
             # self.batch_get_group_members()
@@ -129,16 +128,16 @@ class MyWXBot(WXBot):
                              user_id)
         self.send_msg_by_uid(u'我决定加入「趣直播互联网交流群」, 和大咖们一起聊产品，聊思维，长见识!', user_id)
         self.send_img_msg_by_uid('poster.jpg', user_id)
-        
-    def add_group(self, username, nickname):
+
+    def add_group(self, username):
         group_username = self.add_group_name
         if (self.is_friend_in_group(username, group_username)):
-            logger.info('already in group skip %s' % (nickname))
+            logger.info('already in group skip')
             self.send_msg_by_uid(u'朋友已经在群里啦 感谢', username)
         else:
             add_result = self.add_friend_to_group(username, group_username)
             if add_result:
-                logger.info('auto invite %s to group' % nickname)
+                logger.info('auto invite %s to group' % username)
                 self.send_msg_by_uid(u'感谢朋友转发,请保留24小时哈,请进群改备注公司-职位-姓名哈 也可介绍自己, 发个红包和大家熟悉一下~~', username)
             else:
                 logger.error('fail to add friend to group')
@@ -168,6 +167,7 @@ def main():
     bot = MyWXBot()
     bot.DEBUG = True
     bot.conf['qr'] = 'png'
+    bot.use_merge = False
     bot.run()
 
 
