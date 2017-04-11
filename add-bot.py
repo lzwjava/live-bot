@@ -14,7 +14,7 @@ class MyWXBot(WXBot):
         self.redis_obj = redis.StrictRedis(host='localhost', port=6379, db=0)
         self.add_count = 0
         self.apply_failed = False
-        self.add_group_name = u'互联网交流大群'
+        self.add_group_name = u'超级iOS群'
         self.wechatGroups = []
 
     def save_recommend_info(self, username, recommend_info):
@@ -123,10 +123,10 @@ class MyWXBot(WXBot):
         self.send_img_msg_by_uid('poster.jpg', group_id)
 
     def send_poster_msg(self, user_id, extra_msg=u''):
-        self.send_msg_by_uid((extra_msg + u'请转发海报到朋友圈，配上文字(可自行修改), 并发送截图过来，'
-                                          u'来加入%s哈~~大群里有大咖、同行们，名额有限，感谢支持~~') % (self.add_group_name),
+        self.send_msg_by_uid((extra_msg + u'请转发海报到朋友圈，配上文字(可自行修改), 并「发送截图」过来，'
+                                          u'来加入%s哈~~大群里有大咖们，名额有限，感谢支持~~') % (self.add_group_name),
                              user_id)
-        self.send_msg_by_uid(u'我决定加入「趣直播互联网交流群」, 和大咖们一起聊产品，聊思维，长见识!', user_id)
+        self.send_msg_by_uid(u'我决定加入「%s」，群里有很多大咖，希望跟着大咖们一起走向巅峰！' % (self.add_group_name), user_id)
         self.send_img_msg_by_uid('poster.jpg', user_id)
 
     def add_group(self, username):
