@@ -14,7 +14,9 @@ class MyWXBot(WXBot):
         self.redis_obj = redis.StrictRedis(host='localhost', port=6379, db=0)
         self.add_count = 0
         self.apply_failed = False
-        self.add_group_name = u'超级iOS群'
+        self.into_group_failed = False
+        self.add_group_name = u'超级iOS群2'
+        self.add_group_title = u'超级iOS群'
         self.wechatGroups = []
 
     def save_recommend_info(self, username, recommend_info):
@@ -66,7 +68,10 @@ class MyWXBot(WXBot):
             content = msg['content']
             if content['type'] == 0:
                 if content['data'].find(u'群') != -1:
-                    self.send_poster_msg(username)
+                    if self.into_group_failed:
+                        self.send_failed_msg(username)
+                    else:
+                        self.send_poster_msg(username)
                 elif content['data'].find(u'测试') != -1:
                     self.send_msg_to_group(username)
             elif content['type'] == 3:
@@ -79,10 +84,13 @@ class MyWXBot(WXBot):
             if user_id[:1] == '@' and user_id[1:2] != '@':
                 # single chat
                 content = msg['content']['data']
-                if content.find(u'现在可以开始聊天了') != -1:
+                if content.find(u'你已添加') != -1:
                     user_id = msg['user']['id']
                     time.sleep(3)
-                    self.send_poster_msg(user_id, u'嗨,很高兴认识朋友~~小弟创业狗一枚~~感谢对趣直播的支持~~')
+                    if self.into_group_failed:
+                        self.send_failed_msg(user_id)
+                    else:
+                        self.send_poster_msg(user_id, u'嗨,很高兴认识朋友~~小弟创业狗一枚~~感谢对趣直播的支持~~')
                     logger.info('auto send msg 10000')
                 elif content.find(u'收到红包') != -1:
                     logger.info('receive packet')
@@ -94,6 +102,11 @@ class MyWXBot(WXBot):
         elif msg['msg_type_id'] == 1:
             pass
 
+    def send_failed_msg(self, user_id):
+        self.send_msg_by_uid(u'非常不好意思朋友,此号已被微信限制,请加趣直播联合创始人的微信(如下)进群哈', user_id)
+        self.send_msg_by_uid(u'yujia-49', user_id)
+        self.send_img_msg_by_uid('wechat.jpg', user_id)
+
     def check_group_and_send(self, group_id):
         group = self.get_group_contact(group_id)
         nickname = group['NickName']
@@ -101,8 +114,11 @@ class MyWXBot(WXBot):
         wechatGroup = self.get_group_by_name(nickname)
         if (wechatGroup is not None):
             logger.info('is our group')
-            if member_count % 5 == 0:
-                self.send_msg_to_group(group_id)
+            if member_count % 3 == 0:
+                if self.into_group_failed or self.apply_failed:
+                    pass
+                else:
+                    self.send_msg_to_group(group_id)
         else:
             logger.info('not our group')
 
@@ -119,14 +135,14 @@ class MyWXBot(WXBot):
         return False
 
     def send_msg_to_group(self, group_id):
-        self.send_msg_by_uid(u"请大家加我微信进%s哈, 大群里有嘉宾们, 同行们~~~如果已经是好友, 请私信我「加群」来加入哈" % self.add_group_name, group_id)
+        self.send_msg_by_uid(u"请大家加我微信进%s哈, 大群里有嘉宾们, 同行们~~~如果已经是好友, 请私信我「加群」来加入哈" % self.add_group_title, group_id)
         self.send_img_msg_by_uid('poster.jpg', group_id)
 
     def send_poster_msg(self, user_id, extra_msg=u''):
         self.send_msg_by_uid((extra_msg + u'请转发海报到朋友圈，配上文字(可自行修改), 并「发送截图」过来，'
-                                          u'来加入%s哈~~大群里有大咖们，名额有限，感谢支持~~') % (self.add_group_name),
+                                          u'来加入%s哈~~大群里有大咖们，名额有限，感谢支持~~') % (self.add_group_title),
                              user_id)
-        self.send_msg_by_uid(u'我决定加入「%s」，群里有很多大咖，希望跟着大咖们一起走向巅峰！' % (self.add_group_name), user_id)
+        self.send_msg_by_uid(u'我决定加入「%s」，群里有很多大咖，希望跟着大咖们一起走向巅峰！' % (self.add_group_title), user_id)
         self.send_img_msg_by_uid('poster.jpg', user_id)
 
     def add_group(self, username):
@@ -135,13 +151,19 @@ class MyWXBot(WXBot):
             logger.info('already in group skip')
             self.send_msg_by_uid(u'朋友已经在群里啦 感谢', username)
         else:
+            if self.into_group_failed:
+                logger.error('already failed add group')
+                self.send_failed_msg(username)
+                return
             add_result = self.add_friend_to_group(username, group_username)
             if add_result:
                 logger.info('auto invite %s to group' % username)
                 self.send_msg_by_uid(u'感谢朋友转发,请保留24小时哈,请进群改备注公司-职位-姓名哈 也可介绍自己, 发个红包和大家熟悉一下~~', username)
             else:
                 logger.error('fail to add friend to group')
-                self.send_msg_by_uid(u'感谢朋友支持 一会批量拉群哈', username)
+                self.into_group_failed = True
+                self.send_failed_msg(username)
+                # self.send_msg_by_uid(u'感谢朋友支持 一会批量拉群哈', username)
 
     def ready(self):
         self.wechatGroups = self.get_all_api_group()
