@@ -17,6 +17,7 @@ class MyWXBot(WXBot):
         self.into_group_failed = False
         self.add_group_name = u'超级iOS群2'
         self.add_group_title = u'超级iOS群'
+        self.mid = None
         self.wechatGroups = []
 
     def save_recommend_info(self, username, recommend_info):
@@ -136,14 +137,14 @@ class MyWXBot(WXBot):
 
     def send_msg_to_group(self, group_id):
         self.send_msg_by_uid(u"请大家加我微信进%s哈, 大群里有嘉宾们, 同行们~~~如果已经是好友, 请私信我「加群」来加入哈" % self.add_group_title, group_id)
-        self.send_img_msg_by_uid('poster.jpg', group_id)
+        self.send_img_msg_by_mid(self.mid, group_id)
 
     def send_poster_msg(self, user_id, extra_msg=u''):
         self.send_msg_by_uid((extra_msg + u'请转发海报到朋友圈，配上文字(可自行修改), 并「发送截图」过来，'
                                           u'来加入%s哈~~大群里有大咖们，名额有限，感谢支持~~') % (self.add_group_title),
                              user_id)
         self.send_msg_by_uid(u'我决定加入「%s」，群里有很多大咖，希望跟着大咖们一起走向巅峰！' % (self.add_group_title), user_id)
-        self.send_img_msg_by_uid('poster.jpg', user_id)
+        self.send_img_msg_by_mid(self.mid, user_id)
 
     def add_group(self, username):
         group_username = self.add_group_name
@@ -176,6 +177,10 @@ class MyWXBot(WXBot):
                 have_target_group = True
         if not have_target_group:
             raise Exception('not have target group')
+        self.mid = self.upload_media('poster.jpg', True)
+        if self.mid is None:
+            raise Exception('mid is none')
+        logger.info('mid is %s', self.mid)
 
     def get_all_api_group(self):
         res = self.base_get_api_server('wechatGroups')

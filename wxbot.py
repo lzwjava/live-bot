@@ -1158,6 +1158,7 @@ class WXBot:
             mid = json.loads(r.text)['MediaId']
             return mid
         except Exception, e:
+            print '[ERROR] exception %s' % (e.message)
             return None
 
     def send_file_msg_by_uid(self, fpath, uid):
@@ -1188,10 +1189,7 @@ class WXBot:
         except Exception, e:
             return False
 
-    def send_img_msg_by_uid(self, fpath, uid):
-        mid = self.upload_media(fpath, is_img=True)
-        if mid is None:
-            return False
+    def send_img_msg_by_mid(self, mid, uid, isGif=False):
         url = self.base_uri + '/webwxsendmsgimg?fun=async&f=json'
         data = {
             'BaseRequest': self.base_request,
@@ -1202,7 +1200,7 @@ class WXBot:
                 'ToUserName': uid,
                 'LocalID': str(time.time() * 1e7),
                 'ClientMsgId': str(time.time() * 1e7),},}
-        if fpath[-4:] == '.gif':
+        if isGif:
             url = self.base_uri + '/webwxsendemoticon?fun=sys'
             data['Msg']['Type'] = 47
             data['Msg']['EmojiFlag'] = 2
@@ -1212,9 +1210,20 @@ class WXBot:
             if res['BaseResponse']['Ret'] == 0:
                 return True
             else:
+                print r.text
                 return False
         except Exception, e:
             return False
+
+    def send_img_msg_by_uid(self, fpath, uid):
+        mid = self.upload_media(fpath, is_img=True)
+        if mid is None:
+            print 'mid is None'
+            return False
+        isGif = False
+        if fpath[-4:] == '.gif':
+            isGif = True
+        self.send_img_msg_by_mid(mid, uid, isGif)
 
     def get_user_id(self, name):
         if name == '':
