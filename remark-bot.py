@@ -38,6 +38,7 @@ class MyWXBot(WXBot):
                     if nickname == prefer_name:
                         logger.info('%s name equal skip', nickname)
                     elif 'span' not in prefer_name:
+                        # rate: 1 min 10, 1 hour 100
                         remark_res = self.set_remarkname(uid, prefer_name)
                         if remark_res == 0:
                             logger.info('%s changed to %s' % (nickname, prefer_name))

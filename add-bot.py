@@ -4,6 +4,7 @@
 
 from wxbot import *
 import redis
+import sys
 
 logger = WXBot.init_logger()
 
@@ -15,8 +16,14 @@ class MyWXBot(WXBot):
         self.add_count = 0
         self.apply_failed = False
         self.into_group_failed = False
-        self.add_group_name = u'超级iOS群2'
+        self.add_group_name = u'超级iOS群3'
         self.add_group_title = u'超级iOS群'
+        self.auto_add_friend = True
+        logger.info(sys.argv)
+        if len(sys.argv) > 1:
+            if sys.argv[1] == 'disable-add':
+                self.auto_add_friend = False
+                logger.info('disable add')
         self.mid = None
         self.wechatGroups = []
 
@@ -47,6 +54,8 @@ class MyWXBot(WXBot):
             RecommendInfo = msg['content']['data']
             username = RecommendInfo['UserName']
             nickname = RecommendInfo['NickName']
+            if not self.auto_add_friend:
+                return
             if self.apply_failed:
                 logger.error('already apply failed')
                 self.save_recommend_info(username, RecommendInfo)
@@ -141,7 +150,8 @@ class MyWXBot(WXBot):
 
     def send_poster_msg(self, user_id, extra_msg=u''):
         self.send_msg_by_uid((extra_msg + u'请转发海报到朋友圈，配上文字(可自行修改), 并「发送截图」过来，'
-                                          u'来加入%s哈~~大群里有大咖们，名额有限，感谢支持~~') % (self.add_group_title),
+                                          u'来加入%s哈~~大群里有大咖们，名额有限，感谢支持~~不转发也没关系哈 朋友圈有一些大咖直播可关注~~') % (
+                                 self.add_group_title),
                              user_id)
         self.send_msg_by_uid(u'我决定加入「%s」，群里有很多大咖，希望跟着大咖们一起走向巅峰！' % (self.add_group_title), user_id)
         self.send_img_msg_by_mid(self.mid, user_id)
