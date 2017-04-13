@@ -6,7 +6,7 @@ from wxbot import *
 import redis
 import sys
 
-logger = WXBot.init_logger()
+logger = WXBot.init_logger('multiple-group-bot')
 
 
 class MyWXBot(WXBot):
@@ -24,6 +24,8 @@ class MyWXBot(WXBot):
         self.group_keywords = [u'人工智能', u'设计', u'前端', u'后端', u'iOS', u'Android', u'创业', u'产品', u'运营', u'互联网']
         self.group_names = [u'人工智能大部落', u'设计大部落', u'前端大部落', u'后端大部落', u'iOS大部落', u'Android大部落',
                             u'创业大部落', u'产品大部落', u'运营大部落', u'互联网大部落']
+        self.contact_index = 0
+        self.remark_time = 0
 
     def handle_msg_all(self, msg):
         if msg['msg_type_id'] == 37:
@@ -49,15 +51,7 @@ class MyWXBot(WXBot):
             content = msg['content']
             if content['type'] == 0:
                 text = content['data']
-                if text.find(u'群') != -1:
-                    if self.check_if_not_in_group(username):
-                        self.send_poster_msg(username)
-                elif text == u'更新':
-                    logger.info('begin update members')
-                    self.batch_get_group_members()
-                    logger.info('end update members')
-                else:
-                    self.handle_text_invite(text, username)
+                self.handle_receive_text(text, username)
             elif content['type'] == 3:
                 pass
                 # self.add_group(username)
@@ -86,23 +80,45 @@ class MyWXBot(WXBot):
             username = msg['to_user_id']
             if content['type'] == 0:
                 text = content['data']
-                self.handle_text_invite(text, username)
+                self.handle_receive_text(text, username)
+
+    def handle_receive_text(self, text, username):
+        if text.find(u'群') != -1:
+            if self.check_can_add_group(username):
+                self.send_poster_msg(username)
+        elif text == u'更新':
+            logger.info('begin update members')
+            self.batch_get_group_members()
+            logger.info('end update members')
+        elif text.find(u'退出') != -1:
+            self.handle_exit(username)
+        else:
+            self.handle_text_invite(text, username)
+
+    def handle_exit(self, username):
+        group_usernames = self.group_of_friend(username)
+        for group_username in group_usernames:
+            group = self.get_group_by_nickname(group_username)
+            self.batch_get_target_group_members(group['UserName'])
+        self.send_msg_by_uid(u'棒棒哒，现在试试加新的群~~', username)
 
     def handle_text_invite(self, text, username):
         text = text.strip().lower()
         for group_keyword in self.group_keywords:
             lower_keyword = group_keyword.lower()
             if text.find(lower_keyword) != -1:
-                if self.check_if_not_in_group(username):
+                if self.check_can_add_group(username):
                     index = self.group_keywords.index(group_keyword)
                     group_name = self.group_names[index]
                     self.add_group(username, group_name)
                     return
 
-    def check_if_not_in_group(self, username):
+    def check_can_add_group(self, username):
         groups = self.group_of_friend(username)
-        if len(groups) >= 1:
-            self.send_msg_by_uid(u'只能加一个群哟，朋友已经在%s群里啦，如果真想加，可先退出原来的群' % (groups[0]), username)
+        if len(groups) >= 2:
+            self.send_msg_by_uid(u'最多只能加两个群哟，朋友已经在%s和%s里啦，如果真想加，可先退出原来的群，'
+                                 u'并回复「退出」两字告诉我你退出啦' %
+                                 (groups[0], groups[1]), username)
             return False
         else:
             return True
@@ -118,10 +134,11 @@ class MyWXBot(WXBot):
         self.send_msg_by_uid('抱歉 加群失败 请等待我的主人来手工处理~~', user_id)
 
     def send_poster_msg(self, user_id, extra_msg=u''):
-        self.send_msg_by_uid(u'%s请回复关键词来加入趣直播的相关群，结交更多同行小伙伴。只能加入一个群哟，请选择最合适的群~~\n'
+        self.send_msg_by_uid(u'%s请回复关键词来加入趣直播的相关群，结交更多同行小伙伴。\n'
                              u'回复「人工智能」来加入人工智能群\n回复「设计」来加入设计群\n回复「前端」来加入前端群\n'
                              u'回复「后端」来加入后端群\n回复「iOS」来加入iOS群\n回复「Android」来加入Android群\n回复「创业」来加入创业者群\n'
-                             u'回复「产品」来加入产品群\n回复「运营」来加入运营群\n回复「互联网」来加入互联网群。' % extra_msg, user_id)
+                             u'回复「产品」来加入产品群\n回复「运营」来加入运营群\n回复「互联网」来加入互联网群。\n\n最多只能加入两个群哟，请选择最合适的群~~' % extra_msg,
+                             user_id)
 
     def add_group(self, username, group_username):
         if self.is_friend_in_group(username, group_username):
@@ -167,12 +184,30 @@ class MyWXBot(WXBot):
         else:
             raise Exception('get group failed')
 
+    def schedule(self):
+        if time.time() - self.remark_time > 36:
+            while True:
+                if len(self.contact_list) <= self.contact_index:
+                    logger.info('contact index exceed')
+                    break
+                res = self.remark_contact(self.contact_list[self.contact_index])
+                if res == 1 or res == 2 or res == 3:
+                    if res == 1:
+                        self.contact_index = self.contact_index + 1
+                    self.remark_time = time.time()
+                    logger.info('set remark time run')
+                    break
+                else:
+                    self.contact_index = self.contact_index + 1
+
 
 def main():
     bot = MyWXBot()
     bot.DEBUG = True
     bot.conf['qr'] = 'png'
-    bot.use_merge = False
+    bot.use_merge = True
+    bot.merge_group_names = [u'趣直播超级用户群', u'趣直播超级用户群2', u'趣直播超级用户群3', u'趣直播超级用户群4',
+                             u'趣直播超级用户群5', u'趣直播超级用户群6', u'趣直播超级用户群7']
     bot.run()
 
 

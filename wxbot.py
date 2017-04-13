@@ -72,6 +72,9 @@ class SafeSession(requests.Session):
             raise e
 
 
+logger = None
+
+
 class WXBot:
     """WXBot功能类"""
 
@@ -95,6 +98,7 @@ class WXBot:
         bot_conf = {}  # 机器人配置，在webapi初始化的时候传入，后续也可修改，WxbotManage使用
 
         self.use_merge = True
+        self.merge_group_names = []
         self.batch_count = 50  # 一次拉取50个联系人的信息
         self.full_user_name_list = []  # 直接获取不到通讯录时，获取的username列表
         self.wxid_list = []  # 获取到的wxid的列表
@@ -126,6 +130,8 @@ class WXBot:
 
         self.file_index = 0
 
+        self.logger = self.init_logger('wxbot')
+
     # 在未传入bot_conf的情况下尝试载入本地配置文件，WxbotManage使用
     def load_conf(self, bot_conf):
         try:
@@ -156,7 +162,7 @@ class WXBot:
             raise Exception('Unknown Type')
 
     @staticmethod
-    def init_logger():
+    def init_logger(name):
         if platform == "linux" or platform == "linux2":
             is_linux = True
         else:
@@ -167,7 +173,7 @@ class WXBot:
         else:
             logger_path = '/root/bot.log'
 
-        logger = logging.getLogger('wxbot')
+        logger = logging.getLogger(name)
         hdlr = logging.FileHandler(logger_path)
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         hdlr.setFormatter(formatter)
@@ -374,10 +380,7 @@ class WXBot:
         return len(group['MemberList'])
 
     def is_our_wechat_group(self, nickname):
-        if nickname.find(u'趣直播') != -1 or nickname == u'深度学习DL大群' or nickname == u'互联网交流大群':
-            return True
-        else:
-            return False
+        return nickname in self.merge_group_names
 
     def is_contact_list_contain(self, username):
         for contact in self.contact_list:
@@ -972,13 +975,17 @@ class WXBot:
         dic = r.json()
         return dic['BaseResponse']['Ret'] == 0
 
-    def is_friend_in_group(self, uid, group_name):
-        gid = ''
+    def get_group_by_nickname(self, group_name):
         for group in self.group_list:
             if group['NickName'] == group_name:
-                gid = group['UserName']
-        if gid == '':
+                return group
+        return None
+
+    def is_friend_in_group(self, uid, group_name):
+        group = self.get_group_by_nickname(group_name)
+        if group is None:
             return False
+        gid = group['UserName']
         for user in self.group_members[gid]:
             if user['UserName'] == uid:
                 return True
@@ -988,13 +995,10 @@ class WXBot:
         """
         将好友加入到群聊中
         """
-        gid = ''
-        # 通过群名获取群id,群没保存到通讯录中的话无法添加哦
-        for group in self.group_list:
-            if group['NickName'] == group_name:
-                gid = group['UserName']
-        if gid == '':
+        group = self.get_group_by_nickname(group_name)
+        if group is None:
             return False
+        gid = group['UserName']
         # 获取群成员数量并判断邀请方式
         group_num = len(self.group_members[gid])
         print '[DEBUG] group_name:%s group_num:%s' % (group_name, group_num)
@@ -1627,6 +1631,63 @@ class WXBot:
             return -1
         dic = r.json()
         return dic['BaseResponse']['Ret']
+
+    def get_prefer_username(self, uid):
+        for group in self.group_list:
+            group_nickname = group['NickName']
+            group_id = group['UserName']
+            if self.is_friend_in_group(uid, group_nickname):
+                name = self.get_group_member_name(group_id, uid)
+                if name is None:
+                    pass
+                else:
+                    if 'display_name' in name:
+                        return name['display_name']
+                    else:
+                        pass
+        return None
+
+    def remark_contact(self, contact):
+        # 0 not need
+        # 1 succeed
+        # 2 rate
+        # 3 exception
+        uid = contact['UserName']
+        nickname = contact['NickName']
+        if 'RemarkName' not in contact or not contact['RemarkName']:
+            prefer_name = self.get_prefer_username(uid)
+            if prefer_name is not None:
+                if nickname == prefer_name:
+                    self.logger.info('%s name equal skip', nickname)
+                elif 'span' not in prefer_name:
+                    # rate: 1 min 10, 1 hour 100
+                    remark_res = self.set_remarkname(uid, prefer_name)
+                    if remark_res == 0:
+                        self.logger.info('%s changed to %s' % (nickname, prefer_name))
+                        self.send_msg_by_uid(u'%s 备注为 %s' % (nickname, prefer_name))
+                        return 1
+                    elif remark_res == -1:
+                        self.logger.info('exception')
+                        return 3
+                    elif remark_res == 1205:
+                        self.logger.info('too frequent')
+                        return 2
+                    else:
+                        return 3
+                        self.logger.info('fail to change %s to %s code %d' % (nickname, prefer_name, remark_res))
+                else:
+                    self.logger.info('fail change prefer name %s , nickname %s ' % (prefer_name, nickname))
+                    return 0
+            else:
+                pass
+                # print  'can not find prefer name %s'
+        else:
+            prefer_name = self.get_prefer_username(uid)
+            if prefer_name is not None:
+                pass
+                # print 'remark name %s prefer name %s' % (remark_name, prefer_name)
+                # print 'do not need change %s to %s' % (nickname, remark_name)
+        return 0
 
     def base_get_api_server(self, path, params={}):
         url = 'https://api.quzhiboapp.com/' + path
