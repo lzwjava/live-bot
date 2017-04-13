@@ -47,13 +47,15 @@ class MyWXBot(WXBot):
             username = msg['user']['id']
             content = msg['content']
             if content['type'] == 0:
-                if content['data'].find(u'群') != -1:
+                text = content['data'].strip()
+                if text.find(u'群') != -1:
                     if self.check_if_not_in_group(username):
                         self.send_poster_msg(username)
-                elif content['data'] == u'更新群':
+                elif text == u'更新':
+                    logger.info('begin update members')
                     self.batch_get_group_members()
+                    logger.info('end update members')
                 else:
-                    text = content['data']
                     if text in self.group_keywords:
                         if self.check_if_not_in_group(username):
                             index = self.group_keywords.index(text)
@@ -103,10 +105,10 @@ class MyWXBot(WXBot):
         self.send_msg_by_uid('抱歉 加群失败 请等待我的主人来手工处理~~', user_id)
 
     def send_poster_msg(self, user_id, extra_msg=u''):
-        self.send_msg_by_uid(u'请回复关键词来加入趣直播的相关群，结交更多同行小伙伴。'
-                             u'\n回复「人工智能」来加入人工智能群\n回复「设计」来加入设计群\n回复「前端」来加入前端群\n'
+        self.send_msg_by_uid(u'请回复关键词来加入趣直播的相关群，结交更多同行小伙伴。只能加入一个群哟，请选择最合适的群~~\n'
+                             u'回复「人工智能」来加入人工智能群\n回复「设计」来加入设计群\n回复「前端」来加入前端群\n'
                              u'回复「后端」来加入后端群\n回复「iOS」来加入iOS群\n回复「创业」来加入创业者群\n'
-                             u'回复「产品」来加入产品群\n回复「运营」来加入运营群\n回复「互联网」来加入互联网群。\n只能加入一个群哟，请选择最合适的群~~', user_id)
+                             u'回复「产品」来加入产品群\n回复「运营」来加入运营群\n回复「互联网」来加入互联网群。', user_id)
 
     def add_group(self, username, group_username):
         if self.is_friend_in_group(username, group_username):
