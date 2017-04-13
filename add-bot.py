@@ -106,7 +106,7 @@ class MyWXBot(WXBot):
                     logger.info('receive packet')
             elif user_id[:2] == '@@':
                 content = msg['content']['data']
-                if content.find(u'通过扫描你分享的二维码加入群聊') != -1:
+                if content.find(u'加入了群聊') != -1:
                     self.check_group_and_send(user_id)
 
         elif msg['msg_type_id'] == 1:

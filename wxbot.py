@@ -385,6 +385,16 @@ class WXBot:
                 return True
         return False
 
+    def batch_get_target_group_members(self, group_username):
+        group_usernames = []
+        group_usernames.append(group_username)
+        group_contact_list = self.multiple_batch_get_contact(group_usernames)
+        for group in group_contact_list:
+            gid = group['UserName']
+            members = group['MemberList']
+            self.group_members[gid] = members
+            self.encry_chat_room_id_list[gid] = group['EncryChatRoomId']
+
     def batch_get_group_members(self):
         """批量获取所有群聊成员信息"""
         group_usernames = []
