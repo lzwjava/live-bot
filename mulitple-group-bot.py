@@ -20,8 +20,8 @@ class MyWXBot(WXBot):
                 self.auto_add_friend = False
                 logger.info('disable add')
         self.mid = None
-        self.group_keywords = [u'人工智能', u'设计', u'前端', u'后端', u'iOS', u'创业', u'产品', u'运营', u'互联网']
-        self.group_names = [u'人工智能大部落', u'设计大部落', u'前端大部落', u'后端大部落', u'iOS大部落',
+        self.group_keywords = [u'人工智能', u'设计', u'前端', u'后端', u'iOS', u'Android', u'创业', u'产品', u'运营', u'互联网']
+        self.group_names = [u'人工智能大部落', u'设计大部落', u'前端大部落', u'后端大部落', u'iOS大部落', u'Android大部落',
                             u'创业大部落', u'产品大部落', u'运营大部落', u'互联网大部落']
 
     def handle_msg_all(self, msg):
@@ -107,7 +107,7 @@ class MyWXBot(WXBot):
     def send_poster_msg(self, user_id, extra_msg=u''):
         self.send_msg_by_uid(u'请回复关键词来加入趣直播的相关群，结交更多同行小伙伴。只能加入一个群哟，请选择最合适的群~~\n'
                              u'回复「人工智能」来加入人工智能群\n回复「设计」来加入设计群\n回复「前端」来加入前端群\n'
-                             u'回复「后端」来加入后端群\n回复「iOS」来加入iOS群\n回复「创业」来加入创业者群\n'
+                             u'回复「后端」来加入后端群\n回复「iOS」来加入iOS群\n回复「Android」来加入Android群\n回复「创业」来加入创业者群\n'
                              u'回复「产品」来加入产品群\n回复「运营」来加入运营群\n回复「互联网」来加入互联网群。', user_id)
 
     def add_group(self, username, group_username):
