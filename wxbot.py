@@ -1025,9 +1025,7 @@ class WXBot:
             print 'exception'
             return False
         dic = r.json()
-        if dic['BaseResponse']['Ret'] != 0:
-            print dic
-        return dic['BaseResponse']['Ret'] == 0
+        return dic['BaseResponse']['Ret']
 
     def invite_friend_to_group(self, uid, group_name):
         """
