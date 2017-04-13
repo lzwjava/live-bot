@@ -50,6 +50,8 @@ class MyWXBot(WXBot):
                 if content['data'].find(u'群') != -1:
                     if self.check_if_not_in_group(username):
                         self.send_poster_msg(username)
+                elif content['data'] == u'更新群':
+                    self.batch_get_group_members()
                 else:
                     text = content['data']
                     if text in self.group_keywords:
@@ -86,7 +88,7 @@ class MyWXBot(WXBot):
     def check_if_not_in_group(self, username):
         group_name = self.group_of_friend(username)
         if group_name:
-            self.send_msg_by_uid(u'朋友已经在%s群里啦' % (group_name), username)
+            self.send_msg_by_uid(u'只能加一个群哟，朋友已经在%s群里啦' % (group_name), username)
             return False
         else:
             return True
@@ -104,7 +106,7 @@ class MyWXBot(WXBot):
         self.send_msg_by_uid(u'请回复关键词来加入趣直播的相关群，结交更多同行小伙伴。'
                              u'\n回复「人工智能」来加入人工智能群\n回复「设计」来加入设计群\n回复「前端」来加入前端群\n'
                              u'回复「后端」来加入后端群\n回复「iOS」来加入iOS群\n回复「创业」来加入创业者群\n'
-                             u'回复「产品」来加入产品群\n回复「运营」来加入运营群\n回复「互联网」来加入互联网群。只能加入一个群哟，选择最合适的群哈。', user_id)
+                             u'回复「产品」来加入产品群\n回复「运营」来加入运营群\n回复「互联网」来加入互联网群。\n只能加入一个群哟，请选择最合适的群~~', user_id)
 
     def add_group(self, username, group_username):
         if self.is_friend_in_group(username, group_username):
