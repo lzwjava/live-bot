@@ -22,8 +22,8 @@ class MyWXBot(WXBot):
                 logger.info('disable add')
         self.mid = None
         self.group_keywords = [u'人工智能', u'设计', u'前端', u'后端', u'iOS', u'Android', u'创业', u'产品', u'运营', u'互联网']
-        self.group_names = [u'人工智能大部落', u'设计大部落', u'前端大部落', u'后端大部落', u'iOS大部落', u'Android大部落',
-                            u'创业大部落', u'产品运营大部落', u'产品运营大部落', u'互联网交流大群']
+        self.group_names = [u'人工智能大部落', u'产品运营设计大部落', u'前端大部落', u'后端大部落', u'iOS大部落', u'Android大部落',
+                            u'创业大部落', u'产品运营设计大部落', u'产品运营设计大部落', u'互联网交流大群']
         self.contact_index = 0
         self.remark_time = 0
 
@@ -115,10 +115,10 @@ class MyWXBot(WXBot):
 
     def check_can_add_group(self, username):
         groups = self.group_of_friend(username)
-        if len(groups) >= 2:
-            self.send_msg_by_uid(u'最多只能加两个群哟，朋友已经在%s和%s里啦，如果真想加，可先退出原来的群，'
+        if len(groups) >= 1:
+            self.send_msg_by_uid(u'最多只能加一个群哟，朋友已经在%s里啦，如果真想加，可先退出原来的群，'
                                  u'并回复「退出」两字告诉我你退出啦' %
-                                 (groups[0], groups[1]), username)
+                                 groups[0], username)
             return False
         else:
             return True
@@ -127,7 +127,8 @@ class MyWXBot(WXBot):
         groups = []
         for group_name in self.group_names:
             if self.is_friend_in_group(uid, group_name):
-                groups.append(group_name)
+                if group_name not in groups:
+                    groups.append(group_name)
         return groups
 
     def send_failed_msg(self, user_id):
@@ -137,7 +138,7 @@ class MyWXBot(WXBot):
         self.send_msg_by_uid(u'%s请回复关键词来加入趣直播的相关群，结交更多同行小伙伴。\n'
                              u'回复「人工智能」来加入人工智能群\n回复「设计」来加入设计群\n回复「前端」来加入前端群\n'
                              u'回复「后端」来加入后端群\n回复「iOS」来加入iOS群\n回复「Android」来加入Android群\n回复「创业」来加入创业者群\n'
-                             u'回复「产品」来加入产品群\n回复「运营」来加入运营群\n回复「互联网」来加入互联网群。\n\n最多只能加入两个群哟，请选择最合适的群~~' % extra_msg,
+                             u'回复「产品」来加入产品群\n回复「运营」来加入运营群\n回复「互联网」来加入互联网群。\n\n最多只能加入一个群哟，请选择最合适的群~~' % extra_msg,
                              user_id)
 
     def add_group(self, username, group_username):
