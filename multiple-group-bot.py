@@ -185,6 +185,8 @@ class MyWXBot(WXBot):
             raise Exception('get group failed')
 
     def schedule(self):
+        if not self.schedule_remark:
+            return
         if time.time() - self.remark_time > 36:
             while True:
                 if len(self.contact_list) <= self.contact_index:
@@ -192,8 +194,7 @@ class MyWXBot(WXBot):
                     break
                 res = self.remark_contact(self.contact_list[self.contact_index])
                 if res == 1 or res == 2 or res == 3:
-                    if res == 1:
-                        self.contact_index = self.contact_index + 1
+                    self.contact_index = self.contact_index + 1
                     self.remark_time = time.time()
                     logger.info('set remark time run')
                     break
@@ -205,9 +206,14 @@ def main():
     bot = MyWXBot()
     bot.DEBUG = True
     bot.conf['qr'] = 'png'
-    bot.use_merge = True
-    bot.merge_group_names = [u'趣直播超级用户群', u'趣直播超级用户群2', u'趣直播超级用户群3', u'趣直播超级用户群4',
-                             u'趣直播超级用户群5', u'趣直播超级用户群6', u'趣直播超级用户群7']
+    bot.schedule_remark = False
+    bot.use_merge = bot.schedule_remark
+    if not bot.auto_add_friend:
+        bot.merge_group_names = [u'趣直播超级用户群', u'趣直播超级用户群2', u'趣直播超级用户群3', u'趣直播超级用户群4',
+                                 u'趣直播超级用户群5', u'趣直播超级用户群6', u'趣直播超级用户群7']
+    else:
+        bot.merge_group_names = [u'趣直播超级用户群8', u'趣直播超级用户群9', u'趣直播超级用户群10', u'趣直播超级用户群11',
+                                 u'深度学习DL大群', u'超级iOS群', u'超级iOS群2', u'超级iOS群3', u'互联网交流大群']
     bot.run()
 
 
