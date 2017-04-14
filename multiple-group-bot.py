@@ -154,7 +154,7 @@ class MyWXBot(WXBot):
             add_result = self.add_friend_to_group(username, group_username)
             if add_result == 0:
                 logger.info('auto invite %s to group' % username)
-                self.send_msg_by_uid(u'感谢朋友加群，请进群改备注公司-职位-姓名哈，也可介绍自己，发个红包和大家熟悉一下~~', username)
+                self.send_msg_by_uid(u'邀请朋友加群，请进群改备注公司-职位-姓名哈，也可介绍自己，发个红包和大家熟悉一下~~', username)
             elif add_result == 1205:
                 self.send_msg_by_uid(u'已经收到~可惜我这边拉人太频繁，被微信限制了呢,一个小时后会手动邀请您进相关群，请稍等~~', username)
             else:
