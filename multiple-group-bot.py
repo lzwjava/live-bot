@@ -23,7 +23,7 @@ class MyWXBot(WXBot):
         self.mid = None
         self.group_keywords = [u'人工智能', u'设计', u'前端', u'后端', u'iOS', u'Android', u'创业', u'产品', u'运营', u'互联网']
         self.group_names = [u'人工智能大部落', u'设计大部落', u'前端大部落', u'后端大部落', u'iOS大部落', u'Android大部落',
-                            u'创业大部落', u'产品大部落', u'运营大部落', u'互联网大部落']
+                            u'创业大部落', u'产品运营大部落', u'产品运营大部落', u'互联网交流大群']
         self.contact_index = 0
         self.remark_time = 0
 
@@ -100,7 +100,7 @@ class MyWXBot(WXBot):
         for group_username in group_usernames:
             group = self.get_group_by_nickname(group_username)
             self.batch_get_target_group_members(group['UserName'])
-        self.send_msg_by_uid(u'棒棒哒，现在试试加新的群~~', username)
+        self.send_msg_by_uid(u'棒棒哒，现在试试发送关键词加入新的群~~', username)
 
     def handle_text_invite(self, text, username):
         text = text.strip().lower()
