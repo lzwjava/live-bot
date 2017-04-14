@@ -80,7 +80,7 @@ class MyWXBot(WXBot):
             username = msg['to_user_id']
             if content['type'] == 0:
                 text = content['data']
-                self.handle_receive_text(text, username)
+                self.handle_text_invite(text, username, True)
 
     def handle_receive_text(self, text, username):
         if text.find(u'群') != -1:
@@ -93,7 +93,7 @@ class MyWXBot(WXBot):
         elif text.find(u'退出') != -1:
             self.handle_exit(username)
         else:
-            self.handle_text_invite(text, username)
+            self.handle_text_invite(text, username, True)
 
     def handle_exit(self, username):
         group_usernames = self.group_of_friend(username)
@@ -102,11 +102,16 @@ class MyWXBot(WXBot):
             self.batch_get_target_group_members(group['UserName'])
         self.send_msg_by_uid(u'棒棒哒，现在试试发送关键词加入新的群~~', username)
 
-    def handle_text_invite(self, text, username):
+    def handle_text_invite(self, text, username, strict=False):
         text = text.strip().lower()
         for group_keyword in self.group_keywords:
             lower_keyword = group_keyword.lower()
-            if text.find(lower_keyword) != -1:
+            matched = False
+            if not strict and text.find(lower_keyword) != -1:
+                matched = True
+            elif strict and text == lower_keyword:
+                matched = True
+            if matched:
                 if self.check_can_add_group(username):
                     index = self.group_keywords.index(group_keyword)
                     group_name = self.group_names[index]
