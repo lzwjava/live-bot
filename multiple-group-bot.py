@@ -46,7 +46,7 @@ class MyWXBot(WXBot):
         elif msg['msg_type_id'] == 3:
             # known group
             pass
-        elif msg['msg_type_id'] == 4 or msg['msg_type_id'] == 99:
+        elif msg['msg_type_id'] == 4:
             username = msg['user']['id']
             content = msg['content']
             if content['type'] == 0:
@@ -55,6 +55,26 @@ class MyWXBot(WXBot):
             elif content['type'] == 3:
                 pass
                 # self.add_group(username)
+        elif msg['msg_type_id'] == 99:
+            username = msg['user']['id']
+            content = msg['content']
+            if content['type'] == 0:
+                # text
+                usernames = [username]
+                contacts = self.multiple_batch_get_contact(usernames)
+                text = content['data']
+                if len(contacts) > 0:
+                    contact = contacts[0]
+                    if contact['VerifyFlag'] & 8 != 0:
+                        # public
+                        logger.info('public')
+                        pass
+                    elif self.is_special(username):
+                        # special
+                        pass
+                    else:
+                        # single chat
+                        self.handle_receive_text(text, username)
         elif msg['msg_type_id'] == 12:
             pass
             # self.batch_get_group_members()
@@ -122,8 +142,7 @@ class MyWXBot(WXBot):
         groups = self.group_of_friend(username)
         if len(groups) >= 2:
             self.send_msg_by_uid(u'最多只能加一个群哟，朋友已经在%s和%s里啦，如果真想加，可先退出原来的群，'
-                                 u'并回复「退出」两字告诉我你退出啦' %
-                                 groups[0], groups[1], username)
+                                 u'并回复「退出」两字告诉我你退出啦' % (groups[0], groups[1]), username)
             return False
         else:
             return True
