@@ -86,7 +86,7 @@ class MyWXBot(WXBot):
                 if content.find(u'你已添加') != -1:
                     user_id = msg['user']['id']
                     time.sleep(1)
-                    self.send_poster_msg(user_id, u'嗨，很高兴认识朋友~~趣直播创始人一枚~~感谢对趣直播的支持~~\n')
+                    self.send_poster_msg(user_id, u'嗨，很高兴认识朋友~~趣直播创始人一枚~~感谢对趣直播的支持~~如果是看到招聘，则请朋友多多介绍下自己，相互了解哈\n')
                     logger.info('auto send msg 10000')
                 elif content.find(u'收到红包') != -1:
                     logger.info('receive packet')
@@ -216,7 +216,7 @@ class MyWXBot(WXBot):
         if time.time() - self.remark_time > 36:
             while True:
                 if len(self.contact_list) <= self.contact_index:
-                    logger.info('contact index exceed')
+                    # logger.info('contact index exceed')
                     break
                 res = self.remark_contact(self.contact_list[self.contact_index])
                 if res == 1 or res == 2 or res == 3:
@@ -232,14 +232,15 @@ def main():
     bot = MyWXBot()
     bot.DEBUG = True
     bot.conf['qr'] = 'png'
-    bot.schedule_remark = False
+    bot.schedule_remark = True
     bot.use_merge = bot.schedule_remark
     if not bot.auto_add_friend:
         bot.merge_group_names = [u'趣直播超级用户群', u'趣直播超级用户群2', u'趣直播超级用户群3', u'趣直播超级用户群4',
                                  u'趣直播超级用户群5', u'趣直播超级用户群6', u'趣直播超级用户群7']
     else:
         bot.merge_group_names = [u'趣直播超级用户群8', u'趣直播超级用户群9', u'趣直播超级用户群10', u'趣直播超级用户群11',
-                                 u'深度学习DL大群', u'超级iOS群', u'超级iOS群2', u'超级iOS群3', u'互联网交流大群']
+                                 u'深度学习DL大群', u'超级iOS群', u'超级iOS群2', u'超级iOS群3', u'互联网交流大群',
+                                 u'人工智能大部落', u'iOS大部落', u'创业大部落', u'小程序与前端大部落', u'产品运营设计大部落']
     bot.run()
 
 

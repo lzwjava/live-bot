@@ -1029,8 +1029,9 @@ class WXBot:
             print 'exception'
             return False
         dic = r.json()
+        # print dic
         return dic['BaseResponse']['Ret']
-
+    
     def invite_friend_to_group(self, uid, group_name):
         """
         将好友加入到群中。对人数多的群，需要调用此方法。
