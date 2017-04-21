@@ -141,7 +141,7 @@ class MyWXBot(WXBot):
     def check_can_add_group(self, username):
         groups = self.group_of_friend(username)
         if len(groups) >= 2:
-            self.send_msg_by_uid(u'最多只能加一个群哟，朋友已经在%s和%s里啦，如果真想加，可先退出原来的群，'
+            self.send_msg_by_uid(u'最多只能加两个群哟，朋友已经在%s和%s里啦，如果真想加，可先退出原来的群，'
                                  u'并回复「退出」两字告诉我你退出啦' % (groups[0], groups[1]), username)
             return False
         else:
