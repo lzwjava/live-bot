@@ -784,7 +784,7 @@ class WXBot:
         :param r: 原始微信消息
         """
         for msg in r['AddMsgList']:
-            # print json.dumps(msg)
+            print json.dumps(msg)
             user = {'id': msg['FromUserName'], 'name': 'unknown'}
             if msg['MsgType'] == 51 and msg['StatusNotifyCode'] == 4:  # init message
                 msg_type_id = 0
@@ -792,7 +792,9 @@ class WXBot:
                 # 会获取所有联系人的username 和 wxid，但是会收到3次这个消息，只取第一次
                 if len(self.full_user_name_list) == 0:
                     self.full_user_name_list = msg['StatusNotifyUserName'].split(",")
-                    self.wxid_list = re.search(r"username&gt;(.*?)&lt;/username", msg["Content"]).group(1).split(",")
+                    if len(msg["Content"]) > 0:
+                        self.wxid_list = re.search(r"username&gt;(.*?)&lt;/username", msg["Content"]).group(1).split(
+                            ",")
                     with open(os.path.join(self.temp_pwd, 'UserName.txt'), 'w') as f:
                         f.write(json.dumps(self.full_user_name_list))
                     with open(os.path.join(self.temp_pwd, 'wxid.txt'), 'w') as f:
@@ -1572,12 +1574,15 @@ class WXBot:
         :return: 保存的本地图片文件路径
         """
         url = self.base_uri + '/webwxgetmsgimg?MsgID=%s&skey=%s' % (msgid, self.skey)
-        r = self.session.get(url)
-        data = r.content
-        fn = 'img_' + msgid + '.jpg'
-        with open(os.path.join(self.temp_pwd, fn), 'wb') as f:
-            f.write(data)
-        return fn
+        try:
+            r = self.session.get(url)
+            data = r.content
+            fn = 'img_' + msgid + '.jpg'
+            with open(os.path.join(self.temp_pwd, fn), 'wb') as f:
+                f.write(data)
+            return fn
+        except:
+            return None
 
     def get_voice_url(self, msgid):
         return self.base_uri + '/webwxgetvoice?msgid=%s&skey=%s' % (msgid, self.skey)

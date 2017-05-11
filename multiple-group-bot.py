@@ -232,7 +232,7 @@ def main():
     bot = MyWXBot()
     bot.DEBUG = True
     bot.conf['qr'] = 'png'
-    bot.schedule_remark = True
+    bot.schedule_remark = False
     bot.use_merge = bot.schedule_remark
     if not bot.auto_add_friend:
         bot.merge_group_names = [u'趣直播超级用户群', u'趣直播超级用户群2', u'趣直播超级用户群3', u'趣直播超级用户群4',
