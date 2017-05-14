@@ -191,7 +191,10 @@ class WXBot:
                               % (self.pass_ticket, self.skey, int(time.time()))
 
         # 如果通讯录联系人过多，这里会直接获取失败
-        r = self.session.post(url, data='{}')
+        try:
+            r = self.session.post(url, data='{}')
+        except:
+            return None
         r.encoding = 'utf-8'
         if self.DEBUG:
             with open(os.path.join(self.temp_pwd, 'contacts.json'), 'w') as f:
@@ -673,7 +676,10 @@ class WXBot:
         elif mtype == 3:
             msg_content['type'] = 3
             msg_content['data'] = self.get_msg_img_url(msg_id)
-            msg_content['img'] = self.session.get(msg_content['data']).content.encode('hex')
+            try:
+                msg_content['img'] = self.session.get(msg_content['data']).content.encode('hex')
+            except:
+                msg_content['img'] = None
             if self.DEBUG:
                 image = self.get_msg_img(msg_id)
                 print '    %s[Image] %s' % (msg_prefix, image)
