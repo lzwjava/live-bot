@@ -86,7 +86,7 @@ class MyWXBot(WXBot):
                 if content.find(u'你已添加') != -1:
                     user_id = msg['user']['id']
                     time.sleep(1)
-                    self.send_poster_msg(user_id, u'嗨，很高兴认识朋友~~趣直播创始人一枚~~感谢对趣直播的支持~~如果是看到招聘，则请朋友多多介绍下自己，相互了解哈\n')
+                    self.send_poster_msg(user_id, u'嗨，很高兴认识朋友~~趣直播创始人一枚~~感谢对趣直播的支持~~\n')
                     logger.info('auto send msg 10000')
                 elif content.find(u'收到红包') != -1:
                     logger.info('receive packet')
