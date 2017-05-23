@@ -21,8 +21,8 @@ class MyWXBot(WXBot):
                 self.auto_add_friend = False
                 logger.info('disable add')
         self.mid = None
-        self.group_keywords = [u'人工智能', u'设计', u'前端', u'小程序', u'后端', u'iOS', u'Android', u'创业', u'产品', u'运营', u'互联网']
-        self.group_names = [u'人工智能大部落', u'产品运营设计大部落', u'小程序与前端大部落', u'小程序与前端大部落', u'后端大部落', u'超级iOS群3', u'Android大部落',
+        self.group_keywords = [u'1', u'2', u'3', u'4', u'5', u'6', u'7', u'8', u'9', u'10']
+        self.group_names = [u'人工智能大部落', u'产品运营设计大部落', u'小程序与前端大部落', u'后端大部落', u'超级iOS群3', u'Android大部落',
                             u'创业大部落', u'产品运营设计大部落', u'产品运营设计大部落', u'互联网交流大群']
         self.contact_index = 0
         self.remark_time = 0
@@ -104,8 +104,7 @@ class MyWXBot(WXBot):
 
     def handle_receive_text(self, text, username):
         if text.find(u'进群') != -1 or text.find(u'加群') != -1:
-            if self.check_can_add_group(username):
-                self.send_poster_msg(username)
+            self.send_poster_msg(username)
         elif text == u'更新':
             logger.info('begin update members')
             self.batch_get_group_members()
@@ -159,10 +158,10 @@ class MyWXBot(WXBot):
         self.send_msg_by_uid('抱歉 加群失败 请等待我的主人来手工处理~~', user_id)
 
     def send_poster_msg(self, user_id, extra_msg=u''):
-        self.send_msg_by_uid(u'%s请回复关键词来加入趣直播的相关群，结交更多同行小伙伴。\n'
-                             u'回复「人工智能」来加入人工智能群\n回复「设计」来加入设计群\n回复「前端」来加入前端群\n'
-                             u'回复「后端」来加入后端群\n回复「iOS」来加入iOS群\n回复「Android」来加入Android群\n回复「创业」来加入创业者群\n'
-                             u'回复「产品」来加入产品群\n回复「运营」来加入运营群\n回复「互联网」来加入互联网群。\n回复「小程序」来加入小程序群\n最多只能加入一个群哟，请选择最合适的群~~' %
+        self.send_msg_by_uid(u'%s请回复数字来加入趣直播的相关群，结交更多同行小伙伴。\n'
+                             u'1 - 人工智能\n2 - 设计\n3 - 前端\n'
+                             u'4 - 后端\n5 - iOS\n6 - Android\n7 - 创业\n'
+                             u'8 - 产品\n9 - 运营\n10 - 互联网\n最多只能加入两个群，请选择最合适的群哟' %
                              extra_msg,
                              user_id)
 
