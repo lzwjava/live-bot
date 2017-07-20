@@ -686,7 +686,10 @@ class WXBot:
         elif mtype == 34:
             msg_content['type'] = 4
             msg_content['data'] = self.get_voice_url(msg_id)
-            msg_content['voice'] = self.session.get(msg_content['data']).content.encode('hex')
+            try:
+                msg_content['voice'] = self.session.get(msg_content['data']).content.encode('hex')
+            except:
+                msg_content['voice'] = None
             if self.DEBUG:
                 voice = self.get_voice(msg_id)
                 print '    %s[Voice] %s' % (msg_prefix, voice)
@@ -1621,12 +1624,15 @@ class WXBot:
         """
         url = self.base_uri + '/webwxgetvideo?msgid=%s&skey=%s' % (msgid, self.skey)
         headers = {'Range': 'bytes=0-'}
-        r = self.session.get(url, headers=headers)
-        data = r.content
-        fn = 'video_' + msgid + '.mp4'
-        with open(os.path.join(self.temp_pwd, fn), 'wb') as f:
-            f.write(data)
-        return fn
+        try:
+            r = self.session.get(url, headers=headers)
+            data = r.content
+            fn = 'video_' + msgid + '.mp4'
+            with open(os.path.join(self.temp_pwd, fn), 'wb') as f:
+                f.write(data)
+            return fn
+        except:
+            return None
 
     def set_remarkname(self, uid, remarkname):  # 设置联系人的备注名
         url = self.base_uri + '/webwxoplog?lang=zh_CN&pass_ticket=%s' \
