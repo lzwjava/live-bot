@@ -1600,12 +1600,15 @@ class WXBot:
         :return: 保存的本地语音文件路径
         """
         url = self.base_uri + '/webwxgetvoice?msgid=%s&skey=%s' % (msgid, self.skey)
-        r = self.session.get(url)
-        data = r.content
-        fn = 'voice_' + msgid + '.mp3'
-        with open(os.path.join(self.temp_pwd, fn), 'wb') as f:
-            f.write(data)
-        return fn
+        try:
+            r = self.session.get(url)
+            data = r.content
+            fn = 'voice_' + msgid + '.mp3'
+            with open(os.path.join(self.temp_pwd, fn), 'wb') as f:
+                f.write(data)
+            return fn
+        except:
+            return None
 
     def get_video_url(self, msgid):
         return self.base_uri + '/webwxgetvideo?msgid=%s&skey=%s' % (msgid, self.skey)
