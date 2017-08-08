@@ -87,8 +87,8 @@ class MyWXBot(WXBot):
                     user_id = msg['user']['id']
                     time.sleep(1)
                     self.send_poster_msg(user_id,
-                                         u'嗨，很高兴认识朋友~~趣直播创始人一枚~~感谢支持\n\n我的工作一部分由机器人完成，也即邀请您进趣直播的群。朋友圈有趣直播和团队的一些故事。'
-                                         u'其他任何事情也可以随时私信我，看到后会回复，感谢您\n\n')
+                                         u'嗨，很高兴认识朋友，趣直播创始人一枚，感谢支持。\n\n我的工作一部分由机器人完成，也即自动邀请您进趣直播的群。'
+                                         u'其他任何事情也可以随时私信我，看到后会回复，如果一时忙可催我哈。朋友圈有趣直播和团队的一些故事，欢迎了解。\n\n')
                     logger.info('auto send msg 10000')
                 elif content.find(u'收到红包') != -1:
                     logger.info('receive packet')
@@ -160,10 +160,10 @@ class MyWXBot(WXBot):
         self.send_msg_by_uid('抱歉 加群失败 请等待我的主人来手工处理~~', user_id)
 
     def send_poster_msg(self, user_id, extra_msg=u''):
-        self.send_msg_by_uid(u'%s请回复数字来加入趣直播的相关群，结交更多同行小伙伴。\n'
+        self.send_msg_by_uid(u'%s请回复数字来加入趣直播的相关群，结交更多同行小伙伴。\n\n'
                              u'1 - 人工智能\n2 - 设计\n3 - 前端\n'
                              u'4 - 后端\n5 - iOS\n6 - Android\n7 - 创业\n'
-                             u'8 - 产品\n9 - 运营\n10 - 互联网\n最多只能加入两个群，请选择最合适的群哟。另请一次只发一个数字哦' %
+                             u'8 - 产品\n9 - 运营\n10 - 互联网\n\n最多只能加入两个群，请选择最合适的群，另请一次只发一个数字哦。' %
                              extra_msg,
                              user_id)
 
