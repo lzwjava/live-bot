@@ -187,20 +187,39 @@ class WXBot:
 
     def get_contact(self):
         """获取当前账户的所有相关账号(包括联系人、公众号、群聊、特殊账号)"""
-        url = self.base_uri + '/webwxgetcontact?pass_ticket=%s&skey=%s&r=%s' \
+        dic_list = []
+        url = self.base_uri + '/webwxgetcontact?seq=0&pass_ticket=%s&skey=%s&r=%s' \
                               % (self.pass_ticket, self.skey, int(time.time()))
 
         # 如果通讯录联系人过多，这里会直接获取失败
         try:
-            r = self.session.post(url, data='{}')
-        except:
-            return None
+            r = self.session.post(url, data='{}', timeout=180)
+        except Exception as e:
+            return False
         r.encoding = 'utf-8'
+        dic = json.loads(r.text)
+        dic_list.append(dic)
+
+        print dic
+
+        while int(dic["Seq"]) != 0:
+            print "[INFO] Geting contacts. Get %s contacts for now" % dic["MemberCount"]
+            url = self.base_uri + '/webwxgetcontact?seq=%s&pass_ticket=%s&skey=%s&r=%s' \
+                                  % (dic["Seq"], self.pass_ticket, self.skey, int(time.time()))
+            r = self.session.post(url, data='{}', timeout=180)
+            r.encoding = 'utf-8'
+            dic = json.loads(r.text)
+            dic_list.append(dic)
+
+        print '[INFO] finish contact'
+
         if self.DEBUG:
             with open(os.path.join(self.temp_pwd, 'contacts.json'), 'w') as f:
-                f.write(r.text.encode('utf-8'))
-        dic = json.loads(r.text)
-        self.member_list = dic['MemberList']
+                f.write(json.dumps(dic_list))
+
+        self.member_list = []
+        for dic in dic_list:
+            self.member_list.extend(dic['MemberList'])
 
         special_users = ['newsapp', 'fmessage', 'filehelper', 'weibo', 'qqmail',
                          'fmessage', 'tmessage', 'qmessage', 'qqsync', 'floatbottle',
@@ -1334,9 +1353,10 @@ class WXBot:
                 self.status = 'loginout'
                 return
             self.status_notify()
-            if self.get_contact():
-                print '[INFO] Get %d contacts' % len(self.contact_list)
-                print '[INFO] Start to process messages .'
+            print '[INFO] status notify finish'
+            # if self.get_contact():
+            #     print '[INFO] Get %d contacts' % len(self.contact_list)
+            #     print '[INFO] Start to process messages .'
             self.proc_msg()
             self.status = 'loginout'
         except Exception, e:

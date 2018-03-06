@@ -60,21 +60,23 @@ class MyWXBot(WXBot):
             content = msg['content']
             if content['type'] == 0:
                 # text
-                usernames = [username]
-                contacts = self.multiple_batch_get_contact(usernames)
                 text = content['data']
-                if len(contacts) > 0:
-                    contact = contacts[0]
-                    if contact['VerifyFlag'] & 8 != 0:
-                        # public
-                        logger.info('public')
-                        pass
-                    elif self.is_special(username):
-                        # special
-                        pass
-                    else:
-                        # single chat
-                        self.handle_receive_text(text, username)
+                self.handle_receive_text(text, username)
+                # usernames = [username]
+                # contacts = self.multiple_batch_get_contact(usernames)
+                #
+                # if len(contacts) > 0:
+                #     contact = contacts[0]
+                #     if contact['VerifyFlag'] & 8 != 0:
+                #         # public
+                #         logger.info('public')
+                #         pass
+                #     elif self.is_special(username):
+                #         # special
+                #         pass
+                #     else:
+                #         # single chat
+                #         self.handle_receive_text(text, username)
         elif msg['msg_type_id'] == 12:
             pass
             # self.batch_get_group_members()
@@ -83,12 +85,14 @@ class MyWXBot(WXBot):
             if user_id[:1] == '@' and user_id[1:2] != '@':
                 # single chat
                 content = msg['content']['data']
-                if content.find(u'你已添加') != -1:
+                # logger.info('content %s' % content)
+                if content.find(u'你已添加') != -1 or content.find(u'请求添加你为朋友') != -1:
                     user_id = msg['user']['id']
                     time.sleep(1)
                     self.send_poster_msg(user_id,
                                          u'嗨，很高兴认识朋友，趣直播创始人一枚，感谢支持。\n\n我的工作一部分由机器人完成，也即自动邀请您进趣直播的群。'
-                                         u'其他任何事情也可以随时私信我，看到后会回复，如果一时忙可催我哈。朋友圈有趣直播和团队的一些故事，欢迎了解。\n\n')
+                                         u'其他任何事情可以随时私信我，看到后会回复，如果一时忙可催我哈。朋友圈有趣直播的一些故事，欢迎了解。'
+                                         u'也可以从这篇文章了解哈: http://mp.weixin.qq.com/s/g_jeEG8ee6kF2lL6wzUPwg\n\n')
                     logger.info('auto send msg 10000')
                 elif content.find(u'收到红包') != -1:
                     logger.info('receive packet')
